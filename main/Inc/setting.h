@@ -1,0 +1,18 @@
+/*
+ * setting.h
+ *
+ *  Created on: Aug 1, 2025
+ *      Author: psybe
+ */
+
+#ifndef INC_SETTING_H_
+#define INC_SETTING_H_
+
+
+void Change_Target_Velocity();
+void Setting_Menu();
+void Change_Threshold();
+void Change_Pit_In();
+
+
+#endif /* INC_SETTING_H_ */

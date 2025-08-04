@@ -44,8 +44,8 @@ int32_t positionCenter[15] = { -28000, -24000, -20000, -16000, -12000, -8000,
 		-4000, 0, 4000, 8000, 12000, 16000, 20000, 24000, 28000 };
 
 volatile float accel;
-volatile float accelSetting = 4.5f;
-volatile float decelSetting = 8.0f;
+volatile float accelSetting = 3.0f;
+volatile float decelSetting = 6.0f;
 volatile float decel;
 volatile float pitInLine = 0.3f;
 volatile float curveRate = 0.000068f;
@@ -58,7 +58,7 @@ volatile int indexMarkcnt = 0;
 
 volatile float currentVelocity;
 volatile float targetVelocity;
-volatile float targetVelocitySetting = 1.f;
+volatile float targetVelocitySetting = 0.5f;
 
 volatile float peakVelocity = 8.0f;
 
@@ -134,9 +134,11 @@ void Save_Length(uint32_t *temp, uint32_t index) {
 	}
 	Custom_LCD_Clear();
 }
-
+int kkk = 0;
+float velocity_center;
 void Drive_LPTIM5_IRQ() {
-//	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
+	kkk++;
+	//	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
 	if (currentVelocity < targetVelocity) {
 		currentVelocity += accel * 0.0005f;
 		if (currentVelocity > targetVelocity) {
@@ -148,10 +150,10 @@ void Drive_LPTIM5_IRQ() {
 			currentVelocity = targetVelocity;
 		}
 	}
-	float velocity_center = currentVelocity * curveDecel
+	velocity_center = currentVelocity * curveDecel
 			/ (curveDecel + ABS(positionValue));
-	MotorR.v = velocity_center * (1 - curveRate * (float) positionValue);
-	MotorL.v = velocity_center * (1 + curveRate * (float) positionValue);
+	MotorR.mps_cmd = velocity_center * (1 - curveRate * (float) positionValue);
+	MotorL.mps_cmd = velocity_center * (1 + curveRate * (float) positionValue);
 
 }
 
@@ -292,7 +294,14 @@ void Drive_First() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-//		Custom_LCD_Printf(0, 0, "in fisrt");
+//		Custom_LCD_Printf(0, 0, "%f", MotorL.mps_cmd );
+//Custom_LCD_Printf(0, 0, "center%f", velocity_center);
+		Custom_LCD_Printf(0, 1, "%d", kkk);
+		Custom_LCD_Printf(0, 2, "%d", kkkk);
+
+		Custom_LCD_Printf(0, 3, "R %f", MotorR.mps_cmd);
+		Custom_LCD_Printf(0, 4, "L %f", MotorL.mps_cmd);
+		Custom_LCD_Printf(0, 5, "%d", positionValue);
 		mark = State_Machine();
 		if (mark == MARK_END) {
 			endmarkCNT++;
@@ -505,8 +514,8 @@ void Drive_Test_Without_Motor() {
 
 		Custom_LCD_Printf(0, 2, lower);
 		Custom_LCD_Printf(0, 3, "%6d", positionValue);
-		Custom_LCD_Printf(0, 4, "Left %f", MotorL.v);
-		Custom_LCD_Printf(0, 5, "Right %f", MotorR.v);
+		Custom_LCD_Printf(0, 4, "Left %f", MotorL.mps_cmd);
+		Custom_LCD_Printf(0, 5, "Right %f", MotorR.mps_cmd);
 
 	}
 

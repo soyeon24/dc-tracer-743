@@ -223,12 +223,11 @@ void TIM6_DAC_IRQHandler(void)
 void LPTIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN LPTIM3_IRQn 0 */
+
   /* USER CODE END LPTIM3_IRQn 0 */
   HAL_LPTIM_IRQHandler(&hlptim3);
   /* USER CODE BEGIN LPTIM3_IRQn 1 */
-  Battery_LPTIM3_IRQ();
-
-
+	Battery_LPTIM3_IRQ();
   /* USER CODE END LPTIM3_IRQn 1 */
 }
 

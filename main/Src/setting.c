@@ -17,7 +17,7 @@
 
 #define SETTING_MENU_CNT 8
 
-menu_t settingMenu[] = { {"target V",Change_Target_Velocity }, {"threshold", Change_Threshold},{"back", Back_To_Menu}};
+menu_t settingMenu[] = { {"target V",Change_Target_Velocity },{"Pit in",Change_Pit_In}, {"threshold", Change_Threshold},{"back", Back_To_Menu}};
 
 void Change_Target_Velocity() {
 	Custom_LCD_Clear();
@@ -73,6 +73,7 @@ void Change_Pit_In() {
 		}
 	}
 }
+
 
 
 void Setting_Menu_Print(uint32_t index) {

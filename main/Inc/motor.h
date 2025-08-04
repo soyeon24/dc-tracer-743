@@ -17,22 +17,25 @@ typedef struct {
 	volatile uint16_t CurrEncVal; //현재 엔코더
 	volatile uint16_t PastEncVal; //이전 엔코더
 	volatile int16_t EncDiff;	// 현재 - 이전 엔코더 == 거리 차이
-	volatile float EncV; //앤코더 변화 속도 (=각속도)
+	volatile float rad_per_sec; //앤코더 변화 속도 (=각속도)
 	volatile float EncD; // 엔코더 변화 거리(=속도의 시간대비 적분값)
-	volatile float ComV; //커맨드 속도 (=목표 속도)
+	volatile float rad_per_sec_cmd; //커맨드 속도 (=목표 속도)
 	volatile float ComD; //커맨드 위치 (=목표 거리)
-	volatile float v; //바퀴속도
-	volatile int32_t Duty;
-	volatile float ErrV;
-	volatile float CurPI;
-	volatile float VoltPI;
+	volatile float mps_cmd; //바퀴속도
+	volatile float duty_ratio;
+	volatile int32_t pwm_timer_val;
+
+	volatile float rad_per_sec_err;
+	volatile float current;
+	volatile float voltage;
 	volatile float Integral;
+	volatile float rad_err;
 	volatile float gainP;
 	volatile float gainI;
 
 
 } motor;
-
+extern int kkkk;
 extern motor MotorL;
 extern motor MotorR;
 void Motor_Left_Gain_P();

@@ -33,9 +33,9 @@ void Setting() {
 
 }
 
-menu_t menu[] = { { "Cali ",
-		Sensor_Calibration }, { "3.first ", Drive_First }, { "left gain ",
-		Motor_Left_Gain_Both }, { "settings",Setting_Menu }, { "6.Setting ",
+menu_t menu[] = { { "cali",
+		 Sensor_Calibration}, { "3.first ", Drive_First },{ "settings",Setting_Menu }, { "left gain ",
+					Motor_Left_Gain_Both },  { "6.Setting ",
 		Setting }, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } };
 

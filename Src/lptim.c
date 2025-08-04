@@ -133,7 +133,7 @@ void MX_LPTIM4_Init(void)
   /* USER CODE END LPTIM4_Init 1 */
   hlptim4.Instance = LPTIM4;
   hlptim4.Init.Clock.Source = LPTIM_CLOCKSOURCE_APBCLOCK_LPOSC;
-  hlptim4.Init.Clock.Prescaler = LPTIM_PRESCALER_DIV32;
+  hlptim4.Init.Clock.Prescaler = LPTIM_PRESCALER_DIV16;
   hlptim4.Init.Trigger.Source = LPTIM_TRIGSOURCE_SOFTWARE;
   hlptim4.Init.OutputPolarity = LPTIM_OUTPUTPOLARITY_HIGH;
   hlptim4.Init.UpdateMode = LPTIM_UPDATE_IMMEDIATE;

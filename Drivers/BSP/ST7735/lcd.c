@@ -1,10 +1,10 @@
 #include "lcd.h"
 #include "font.h"
-#include "spi.h"
-#include "tim.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
+#include "../../../MDK-ARM/Inc/spi.h"
+#include "../../../MDK-ARM/Inc/tim.h"
 
 #define TFT96
 

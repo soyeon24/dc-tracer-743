@@ -7,14 +7,15 @@
 
 #include "init.h"
 #include "lcd.h"
-#include "tim.h"
 #include "sensor.h"
 #include "motor.h"
 #include "drive.h"
-#include "lptim.h"
 #include "stdbool.h"
-#include "custom_switch.h"
 #include "setting.h"
+
+#include "../../MDK-ARM/Inc/custom_switch.h"
+#include "../../MDK-ARM/Inc/lptim.h"
+#include "../../MDK-ARM/Inc/tim.h"
 #define STATE_IDLE 0
 #define STATE_CROSS 1
 #define STATE_MARK 2
@@ -49,7 +50,7 @@ volatile float decelSetting = 8.0f;
 volatile float decel;
 volatile float pitInLine = 0.3f;
 volatile float curveRate = 0.000068f;
-float curveDecel = 19000.f;
+volatile float curveDecel = 19000.f;
 
 //state
 volatile uint32_t sensorStateSum = 0;

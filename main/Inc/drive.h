@@ -8,7 +8,8 @@
 #ifndef MAIN_INC_DRIVE_H_
 #define MAIN_INC_DRIVE_H_
 #include <stdint.h>
-#include "main.h"
+
+#include "../../MDK-ARM/Inc/main.h"
 void Drive_First(void);
 void Drive_Second(void);
 void Drive_Third(void);
@@ -27,4 +28,8 @@ extern volatile float accelSetting;
 extern volatile float decelSetting;
 extern volatile float decel;
 extern volatile float pitInLine;
+extern volatile float curveDecel;
+extern volatile float curveRate;
+
 #endif /* MAIN_INC_DRIVE_H_ */
+

@@ -5,8 +5,9 @@
  *      Author: kth59
  */
 
-#include "main.h"
 #include <stdint.h>
+
+#include "../../MDK-ARM/Inc/main.h"
 #ifndef MAIN_INC_MOTOR_H_
 #define MAIN_INC_MOTOR_H_
 

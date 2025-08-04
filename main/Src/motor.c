@@ -9,15 +9,15 @@
 #include "math.h"
 #include "drive.h"
 #include "sensor.h"
-#include "tim.h"
-#include "gpio.h"
-#include "lptim.h"
 #include "init.h"
 #include "lcd.h"
 #include <stdbool.h>
-#include "custom_switch.h"
 #include "dwt_delay.h"
 #include "setting.h"
+#include "../../MDK-ARM/Inc/custom_switch.h"
+#include "../../MDK-ARM/Inc/gpio.h"
+#include "../../MDK-ARM/Inc/lptim.h"
+#include "../../MDK-ARM/Inc/tim.h"
 
 #define ABS(x) ((x>0) ? x:(-x))
 #define MIN(a, b) ((a > b) ? b : a )
@@ -55,11 +55,11 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP = 0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
-	MotorL.gainI =420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP = 0.16f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
+	MotorL.gainI =300.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP =0.23;//0.9f;//0.8f;// 0.8f; //0.97
-	MotorR.gainI = 400.0f;//0.0f;//
+	MotorR.gainP =0.18;//0.23;//0.9f;//0.8f;// 0.8f; //0.97
+	MotorR.gainI = 260.0f;//400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더
@@ -178,7 +178,7 @@ void Motor_Stop() {
 }
 
 menu_t motor_menu[] = { { "speed T", Motor_Speed_Change }, { "1.left gP ",
-		Motor_Left_Gain_P }, { "2.Right gP", Motor_Right_Gain_P }, { "Left PI",
+		Motor_Left_Gain_Both }, { "2.Right PI", Motor_Right_Gain_Both}, { "Left PI",
 				Motor_Left_Gain_P }, { "PWM Test", Motor_Test_76EHWAN }, {
 		"1.left gI ", Motor_Left_Gain_I }, { "2.Right gI", Motor_Right_Gain_I },
 		{ "back menu", Back_To_Menu } };
@@ -343,10 +343,10 @@ void Motor_Left_Gain_Both() {
 		if (sw == CUSTOM_JS_L_TO_R) {
 			MotorL.gainP += 0.01;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorL.gainP -= 0.005;
+			MotorL.gainP -= 0.05;
 		}
 			else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorL.gainI += 1;
+			MotorL.gainI += 10;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			MotorL.gainI -= 1;
 		}
@@ -452,7 +452,7 @@ void Motor_Right_Gain_P() {
 		Custom_LCD_Printf(0, 7, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 8, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorR.gainP += 0.01;
+			MotorR.gainP += 0.001;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
 			MotorR.gainP -= 0.01;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
@@ -524,14 +524,14 @@ void Motor_Right_Gain_Both() {
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorR.gainP += 0.05;
+			MotorR.gainP += 0.01;;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorR.gainP -= 0.01;
+			MotorR.gainP -= 0.005;
 		}
 			else if (sw == CUSTOM_JS_D_TO_U) {
 			MotorR.gainI += 10;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorR.gainI -= 1;
+			MotorR.gainI -= 10;
 		}
 
 	}
@@ -685,40 +685,3 @@ void Motor_Test_76EHWAN() {
 	HAL_LPTIM_Encoder_Stop(MOTORL_ENCODER_TIMER);
 }
 
-void Left_Motor_Test_Phase() {
-
-	HAL_LPTIM_Encoder_Start(MOTORR_ENCODER_TIMER, 65535);
-	HAL_LPTIM_Encoder_Start(MOTORL_ENCODER_TIMER, 65535);
-	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 0);
-	Battery_Start();
-	Motor_Start();
-	while (1) {
-//		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 0);
-		uint8_t sw = Custom_Switch_Read();
-		while (1) {
-			sw = Custom_Switch_Read();
-			if (sw == CUSTOM_JS_D_TO_U) {
-				break;
-			} else if (sw == CUSTOM_JS_L_TO_R) {
-				MotorL.gainP * 2;
-			} else if (sw == CUSTOM_JS_R_TO_L) {
-				MotorL.gainP / 2;
-			}
-			Custom_LCD_Printf(0, 0, "%9f", MotorL.gainP);
-			Custom_LCD_Printf(0, 1, "%5d", MotorL.CurrEncVal);
-			Custom_LCD_Printf(0, 2, "%9d", MotorL.EncDiff); //0
-			Custom_LCD_Printf(0, 3, "%9f", MotorL.EncV); //0
-			Custom_LCD_Printf(0, 4, "%9f", MotorL.VoltPI);
-			Custom_LCD_Printf(0, 5, "%9d", MotorL.Duty);
-			Custom_LCD_Printf(0, 6, "%f", batteryVolt);
-			Custom_LCD_Printf(0, 7, "%f", MotorL.EncV * MOTOR_KE);
-		}
-
-		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
-	}
-
-	Motor_Stop();
-	Battery_Stop();
-	HAL_LPTIM_Encoder_Stop(MOTORR_ENCODER_TIMER);
-	HAL_LPTIM_Encoder_Stop(MOTORL_ENCODER_TIMER);
-}

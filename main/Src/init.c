@@ -7,13 +7,14 @@
 
 #include "init.h"
 #include "lcd.h"
-#include "tim.h"
 #include "sensor.h"
 #include "motor.h"
 #include "drive.h"
-#include "lptim.h"
 #include "setting.h"
-#include "custom_switch.h"
+
+#include "../../MDK-ARM/Inc/custom_switch.h"
+#include "../../MDK-ARM/Inc/lptim.h"
+#include "../../MDK-ARM/Inc/tim.h"
 
 #define MAIN_MENU_CNT 8
 //
@@ -33,9 +34,9 @@ void Setting() {
 
 }
 
-menu_t menu[] = { { "Cali ",
-		Sensor_Calibration }, { "3.first ", Drive_First }, { "left gain ",
-		Motor_Left_Gain_Both }, { "settings",Setting_Menu }, { "6.Setting ",
+menu_t menu[] = { { "1. Cali ",
+		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "left gain ",
+		Motor_Left_Gain_Both }, { "6.Setting ",
 		Setting }, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } };
 

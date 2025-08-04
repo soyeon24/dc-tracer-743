@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    memorymap.c
-  * @brief   This file provides code for the configuration
-  *          of the MEMORYMAP instances.
+  * @file    rtc.h
+  * @brief   This file contains all the function prototypes for
+  *          the rtc.c file
   ******************************************************************************
   * @attention
   *
@@ -17,13 +17,36 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __RTC_H__
+#define __RTC_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Includes ------------------------------------------------------------------*/
-#include "../MDK-ARM/Inc/memorymap.h"
+#include "main.h"
 
-/* USER CODE BEGIN 0 */
+/* USER CODE BEGIN Includes */
 
-/* USER CODE END 0 */
+/* USER CODE END Includes */
 
-/* USER CODE BEGIN 1 */
+extern RTC_HandleTypeDef hrtc;
 
-/* USER CODE END 1 */
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
+void MX_RTC_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __RTC_H__ */
+

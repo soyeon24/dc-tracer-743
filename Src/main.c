@@ -29,9 +29,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lcd.h"
-#include "init.h"
-#include "dwt_delay.h"
 
 /* USER CODE END Includes */
 

@@ -1,10 +1,10 @@
 #ifndef __LCD_H
 #define __LCD_H		
 
-#include "main.h"
 #include "st7735.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include "../../../MDK-ARM/Inc/main.h"
 
 #define WHITE         	 0xFFFF
 #define BLACK         	 0x0000	  

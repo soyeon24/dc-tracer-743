@@ -5,16 +5,16 @@
  *      Author: kth59
  */
 
-#include "main.h"
 #include "init.h"
-#include "adc.h"
 #include "sensor.h"
-#include "tim.h"
 #include "lcd.h"
 #include "motor.h"
-#include "lptim.h"
-#include "custom_switch.h"
 #include "setting.h"
+#include "../../MDK-ARM/Inc/adc.h"
+#include "../../MDK-ARM/Inc/custom_switch.h"
+#include "../../MDK-ARM/Inc/lptim.h"
+#include "../../MDK-ARM/Inc/main.h"
+#include "../../MDK-ARM/Inc/tim.h"
 
 int32_t positionValue = 0;
 int32_t weightedSum = 0;

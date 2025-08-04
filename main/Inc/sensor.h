@@ -8,9 +8,10 @@
 #ifndef MAIN_INC_SENSOR_H_
 #define MAIN_INC_SENSOR_H_
 
-#include "main.h"
-#include "lptim.h"
 #include <stdint.h>
+
+#include "../../MDK-ARM/Inc/lptim.h"
+#include "../../MDK-ARM/Inc/main.h"
 void TIM6_Sensor_IRQ(void);
 void Sensor_Test_Raw(void);
 void Sensor_Test_Menu(void);

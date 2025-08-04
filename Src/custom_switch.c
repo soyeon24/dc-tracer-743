@@ -6,7 +6,7 @@
  *    Modifier: Soyeon Park
  */
 
-#include "custom_switch.h"
+#include "../MDK-ARM/Inc/custom_switch.h"
 
 #define CUSTOM_SW_NONE 0x00
 #define CUSTOM_SW_U    0x02

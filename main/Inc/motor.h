@@ -30,6 +30,7 @@ typedef struct {
 	volatile float Integral;
 	volatile float gainP;
 	volatile float gainI;
+	volatile uint32_t currentTick;
 
 
 } motor;

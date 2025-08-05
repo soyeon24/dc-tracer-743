@@ -35,9 +35,9 @@ void Setting() {
 }
 
 menu_t menu[] = { { "1. Cali ",
-		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "left gain ",
-		Motor_Left_Gain_Both }, { "6.Setting ",
-		Setting }, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "4.sec drive ",
+				Drive_Second }, { "5.peak ",
+						Change_peak_v},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } };
 
 void Button_Test() {
@@ -148,6 +148,7 @@ void Init() {
 				Custom_LCD_Clear();
 				Battery_Stop();
 				(menu + selected_index)->func();
+				Battery_Start();
 			}
 			Set_Color(numOfMenu, selected_index);
 

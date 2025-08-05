@@ -35,6 +35,24 @@ void Change_curve_rate(){
 		}
 	}
 }
+
+void Change_peak_v(){
+	Custom_LCD_Clear();
+		uint8_t sw = CUSTOM_JS_NONE;
+		while (1) {
+			Custom_LCD_Printf(0, 0, "%f", peakVelocity);
+			sw = Custom_Switch_Read();
+			if(sw== CUSTOM_JS_D_TO_U){
+				peakVelocity+=0.5;
+			}
+			else if(sw ==CUSTOM_JS_U_TO_D){
+				peakVelocity-= 0.1f;
+			}
+			else if(sw == CUSTOM_JS_L_TO_R){
+				break;
+			}
+		}
+}
 void Change_curveDecel(){
 	Custom_LCD_Clear();
 		uint8_t sw = CUSTOM_JS_NONE;

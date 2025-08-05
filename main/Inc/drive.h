@@ -19,6 +19,10 @@ void Drive_Test_Without_Motor();
 void Drive_LPTIM5_IRQ();
 void First_Drive_Mark_Debug();
 void Drive_Test_Menu();
+void Drive_Second();
+//void Drive_Test_Menu();
+void Mark_Debug();
+void Drive_Test_Menu();
 
 extern volatile float targetVelocity;
 extern volatile float currentVelocity;
@@ -30,6 +34,7 @@ extern volatile float decel;
 extern volatile float pitInLine;
 extern volatile float curveDecel;
 extern volatile float curveRate;
+extern volatile float peakVelocity;
 
 #endif /* MAIN_INC_DRIVE_H_ */
 

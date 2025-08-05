@@ -16,5 +16,6 @@ void Change_Pit_In();
 void Change_accelSetting();
 void Change_decelSetting();
 void Change_curve_rate();
+void Change_peak_v();
 
 #endif /* INC_SETTING_H_ */

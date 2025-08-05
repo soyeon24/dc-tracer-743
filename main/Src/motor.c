@@ -21,7 +21,7 @@
 
 #define ABS(x) ((x>0) ? x:(-x))
 #define MIN(a, b) ((a > b) ? b : a )
-#define ENCODER_RATIO 2048.f
+#define ENCODER_RATIO 4096.f
 #define GEAR (63.f/17.f)
 #define WHEEL 0.035f //4cm라 가정
 #define TIME 0.0005
@@ -55,11 +55,11 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP = 0.16f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
-	MotorL.gainI =300.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP = 0.08f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
+	MotorL.gainI =150.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP =0.18;//0.23;//0.9f;//0.8f;// 0.8f; //0.97
-	MotorR.gainI = 260.0f;//400.0f;//0.0f;//
+	MotorR.gainP =0.09;//0.23;//0.9f;//0.8f;// 0.8f; //0.97
+	MotorR.gainI = 130.0f;//400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더
@@ -74,6 +74,8 @@ void Motor_Start() {
 	MotorL.CurPI = 0;
 	MotorL.VoltPI = 0;
 	MotorL.Integral = 0;
+	MotorL.currentTick = 0;
+
 
 	MotorR.CurrEncVal = 0; //현재 엔코더
 	MotorR.PastEncVal = 0; //이전 엔코더
@@ -88,6 +90,7 @@ void Motor_Start() {
 	MotorR.CurPI = 0;
 	MotorR.VoltPI = 0;
 	MotorR.Integral = 0;
+	MotorR.currentTick=0;
 	HAL_LPTIM_Encoder_Start(MOTORR_ENCODER_TIMER, 65535); //왼쪽 엔코더
 	HAL_LPTIM_Encoder_Start(MOTORL_ENCODER_TIMER, 65535); //오른쪽 엔코더
 
@@ -177,10 +180,10 @@ void Motor_Stop() {
 
 }
 
-menu_t motor_menu[] = { { "speed T", Motor_Speed_Change }, { "1.left gP ",
+menu_t motor_menu[] = {{"enc",Encoder_Test}, { "speed T", Motor_Speed_Change }, { "1.left gP ",
 		Motor_Left_Gain_Both }, { "2.Right PI", Motor_Right_Gain_Both}, { "Left PI",
 				Motor_Left_Gain_P }, { "PWM Test", Motor_Test_76EHWAN }, {
-		"1.left gI ", Motor_Left_Gain_I }, { "2.Right gI", Motor_Right_Gain_I },
+		"1.left gI ", Motor_Left_Gain_I },
 		{ "back menu", Back_To_Menu } };
 
 uint32_t MOTOR_MENU_CNT = (sizeof(motor_menu) / sizeof(menu_t));
@@ -220,14 +223,17 @@ void Motor_Test_Menu() {
 		}
 	}
 }
-
+int kkk = 0;
 void Motor_LPTIM4_IRQ() {
+	kkk++;
+
 	//input
 	MotorL.CurrEncVal = (uint16_t) LPTIM2->CNT;	//1은 왼쪽
 	MotorR.CurrEncVal = (uint16_t) -LPTIM1->CNT;	//2는 오른쪽 감소
 
 	MotorL.EncDiff = (int16_t) MotorL.CurrEncVal - (int16_t) MotorL.PastEncVal;
 	MotorR.EncDiff = (int16_t) MotorR.CurrEncVal - (int16_t) MotorR.PastEncVal;
+
 
 	MotorL.PastEncVal = MotorL.CurrEncVal;
 	MotorR.PastEncVal = MotorR.CurrEncVal;
@@ -262,12 +268,18 @@ void Motor_LPTIM4_IRQ() {
 	MotorL.Duty = TIM8->ARR * MotorL.VoltPI / batteryVolt;
 	MotorR.Duty = TIM8->ARR * MotorR.VoltPI / batteryVolt;
 
+	MotorL.currentTick += (int32_t)MotorL.EncDiff;
+	MotorR.currentTick +=(int32_t)MotorR.EncDiff;
+
 	// 정방향: PH = 0, 역방향: PH = 1
 	HAL_GPIO_WritePin(MOTORL_PH_GPIO_Port, MOTORL_PH_Pin, !DirL);
 	HAL_GPIO_WritePin(MOTORR_PH_GPIO_Port, MOTORR_PH_Pin, DirR);
 
 	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORL_CHANNEL, MotorL.Duty);
 	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORR_CHANNEL, MotorR.Duty);
+
+
+
 }
 
 void Encoder_Test() {
@@ -567,6 +579,7 @@ void Motor_Speed_Change() {
 		Custom_LCD_Printf(0, 3, "EV %f", MotorL.EncV);
 		Custom_LCD_Printf(0, 4, "R %f", MotorR.v);
 		Custom_LCD_Printf(0, 5, "EV %f", MotorR.EncV);
+		Custom_LCD_Printf(0, 6, "%d", kkk);
 	}
 
 	Motor_Stop();

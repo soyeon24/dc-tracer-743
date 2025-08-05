@@ -26,7 +26,7 @@ uint32_t blackMax[16] = { 0 };
 uint32_t sensorNormalized[16] = { 0 };
 uint8_t center = 7;
 uint16_t sensorState = 0;
-uint32_t sensorThreshold = 100;
+uint32_t sensorThreshold = 45;
 window_t Window;
 uint8_t windowStartIndex = 17;
 uint8_t windowEndIndex = 0;

@@ -83,8 +83,8 @@ void Error_Handler(void);
 #define Sensor_MUX0_GPIO_Port GPIOA
 #define Sensor_ADC_Pin GPIO_PIN_7
 #define Sensor_ADC_GPIO_Port GPIOA
-#define LED2C4_Pin GPIO_PIN_4
-#define LED2C4_GPIO_Port GPIOC
+#define LED1_Pin GPIO_PIN_4
+#define LED1_GPIO_Port GPIOC
 #define LCD_CS_Pin GPIO_PIN_11
 #define LCD_CS_GPIO_Port GPIOE
 #define LCD_WR_RS_Pin GPIO_PIN_13

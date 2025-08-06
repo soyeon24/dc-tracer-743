@@ -9,6 +9,7 @@
 #define MAIN_INC_INIT_H_
 
 #include <stdint.h>
+#include "main.h"
 
 void Init();
 void Custom_LCD_Clear();

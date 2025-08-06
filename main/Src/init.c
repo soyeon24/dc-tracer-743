@@ -36,8 +36,8 @@ void Setting() {
 
 menu_t menu[] = { { "1. Cali ",
 		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "4.sec drive ",
-				Drive_Second }, { "5.peak ",
-						Change_peak_v},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+				Drive_Second }, { "mark debug ",
+						Mark_Debug},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } };
 
 void Button_Test() {
@@ -122,14 +122,19 @@ void Switch_Test() {
 }
 
 void Init() {
-
+//	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+//	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 	Battery_Start();
 //	Button_Test();
 	uint32_t selected_index = 0;
 	uint32_t sw = CUSTOM_JS_NONE;
 	uint32_t numOfMenu = sizeof(menu) / sizeof(menu_t);
-
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 	while (1) {
+//		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+//			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 		POINT_COLOR = WHITE;
 		BACK_COLOR = BLACK;
 		while (1) {
@@ -158,7 +163,7 @@ void Init() {
 
 //		HAL_LPTIM_Encoder_Stop(&hlptim1);
 //
-//		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 0);
+		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 0);
 //		HAL_LPTIM_Encoder_Start(&hlptim1, 65535);
 
 	}

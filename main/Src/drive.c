@@ -20,7 +20,6 @@
 #define BUZZER_Pin GPIO_PIN_5
 #define BUZZER_GPIO_Port GPIOE
 
-
 #define STATE_IDLE 0
 #define STATE_CROSS 1
 #define STATE_MARK 2
@@ -64,7 +63,7 @@ volatile int indexMarkcnt = 0;
 
 volatile float currentVelocity;
 volatile float targetVelocity;
-volatile float targetVelocitySetting = 2.0f;
+volatile float targetVelocitySetting = 2.5f;
 
 volatile float peakVelocity = 2.0f;
 
@@ -85,11 +84,10 @@ uint32_t secIndexmark = 0;
 
 uint32_t safeDistance = 60;
 
-menu_t drive_menu[] = { { "1st D", Drive_First }, { "mark debug",
-		Mark_Debug }, { "2nd D", Drive_Second}, {
-		"4.encoder", Encoder_Test }, { "PWM Test", Motor_Test_76EHWAN }, {
-		"5.S posi", Position_Test }, { "6.S Test ", Sensor_Test_Menu }, {
-		"back menu", Back_To_Menu } };
+menu_t drive_menu[] = { { "1st D", Drive_First }, { "mark debug", Mark_Debug },
+		{ "2nd D", Drive_Second }, { "4.encoder", Encoder_Test }, { "PWM Test",
+				Motor_Test_76EHWAN }, { "5.S posi", Position_Test }, {
+				"6.S Test ", Sensor_Test_Menu }, { "back menu", Back_To_Menu } };
 
 uint32_t DRIVE_MENU_CNT = (sizeof(drive_menu) / sizeof(menu_t));
 
@@ -304,6 +302,11 @@ void Drive_First() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorState & Window.left);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
+		if((endmarkCNT == 0)&&(crossCNT == 1)){
+			endmarkCNT ++;
+		}
 //		Custom_LCD_Printf(0, 0, "in fisrt");
 //		Custom_LCD_Printf(0, 0, "%d",MotorL.currentTick );
 		mark = State_Machine();
@@ -317,6 +320,8 @@ void Drive_First() {
 			markIndex++;
 			endmarkCNT++;
 		} else if (mark == MARK_CROSS) {
+
+
 			tempMarkRead[markIndex] = mark;
 			tempMarkLength[markIndex] =
 					(MotorL.currentTick + MotorR.currentTick) / 2
@@ -373,9 +378,9 @@ void Drive_First() {
 		Custom_LCD_Printf(0, 7, "X up");
 		for (int i = 0; i < markIndex; i++) {
 
-						markSaveFirst[i] = tempMarkRead[i];
-												markLengthFirst[i] = tempMarkLength[i];
-					}
+			markSaveFirst[i] = tempMarkRead[i];
+			markLengthFirst[i] = tempMarkLength[i];
+		}
 		if (sw == CUSTOM_JS_U_TO_D) {
 
 			break;
@@ -404,8 +409,11 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 //		Custom_LCD_Printf(0, 4,"accel");
 
 		uint32_t currentTick = (MotorL.currentTick + MotorR.currentTick) / 2;
-		uint32_t decelTick = (uint32_t)(18000* (currentVelocity * currentVelocity
-				- targetVelocitySetting * targetVelocitySetting) / decel);
+		uint32_t decelTick =
+				(uint32_t) (18000
+						* (currentVelocity * currentVelocity
+								- targetVelocitySetting * targetVelocitySetting)
+						/ decel);
 		if (markLengthFirst[secIndexmark] < safeDistance) {
 			secondState = STATE_DECCEL;
 		} else if (markLengthFirst[index] - currentTick
@@ -424,7 +432,6 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		secondState = STATE_IDLE;
 		break;
 	}
-
 }
 void First_Drive_Mark_Debug() {
 	uint8_t sw = CUSTOM_JS_NONE;
@@ -446,6 +453,7 @@ void First_Drive_Mark_Debug() {
 
 void Drive_Second() {
 	//output
+
 	uint32_t tempMarkRead[400];
 	int32_t tempMarkLength[400];
 	int32_t returnTempMarkLength[400];
@@ -471,6 +479,7 @@ void Drive_Second() {
 	Drive_Start();
 	bool secDrive = 1;
 	while (secEndmarkCNT < 2) {
+
 
 		Custom_LCD_Printf(0, 0, "tv %f", targetVelocity);
 		Custom_LCD_Printf(0, 1, "cv %f", currentVelocity);
@@ -592,6 +601,7 @@ void Mark_Debug() {
 	while (1) {
 
 		sw = Custom_Switch_Read();
+		Custom_LCD_Printf(0, 2,"%d",index_mark_track );
 		if (sw == CUSTOM_JS_U_TO_D) {
 			index_mark_track++;
 		} else if (sw == CUSTOM_JS_D_TO_U) {
@@ -613,6 +623,7 @@ void Mark_Debug() {
 		}
 
 	}
+}
 
 //	void Mark_Length_Debug() {
 //		uint32_t index_mark_track = 0;
@@ -643,61 +654,60 @@ void Mark_Debug() {
 //
 //	}
 
-	void Drive_Test_Without_Motor() {
-		accel = accelSetting;
-		targetVelocity = targetVelocitySetting;
-		decel = decelSetting;
+void Drive_Test_Without_Motor() {
+	accel = accelSetting;
+	targetVelocity = targetVelocitySetting;
+	decel = decelSetting;
 
-		uint8_t endmarkCNT = 0;
-		uint8_t mark = MARK_NONE;
+	uint8_t endmarkCNT = 0;
+	uint8_t mark = MARK_NONE;
 
-		Sensor_Start();
-		HAL_Delay(10);
-		Motor_Start();
-		Drive_Start();
-		while (endmarkCNT < 2) {
-			//		Custom_LCD_Printf(0, 0, "in fisrt");
-			mark = State_Machine();
-			if (mark == MARK_END) {
-				endmarkCNT++;
-			}
+	Sensor_Start();
+	HAL_Delay(10);
+	Motor_Start();
+	Drive_Start();
+	while (endmarkCNT < 2) {
+		//		Custom_LCD_Printf(0, 0, "in fisrt");
+		mark = State_Machine();
+		if (mark == MARK_END) {
+			endmarkCNT++;
+		}
 
-			if (!sensorState) {
-				break;
-
-			}
-
-			char upper[9] = { 0 };
-			char lower[9] = { 0 };
-			for (int i = 0; i < 8; i++) {
-				upper[i] = ((sensorState >> (15 - i)) & 1) ? '1' : '0';
-				lower[i] = ((sensorState >> (7 - i)) & 1) ? '1' : '0';
-			}
-			Custom_LCD_Printf(0, 0, "STATE");
-
-			Custom_LCD_Printf(0, 1, upper);
-
-			Custom_LCD_Printf(0, 2, lower);
-			Custom_LCD_Printf(0, 3, "%6d", positionValue);
-			Custom_LCD_Printf(0, 4, "Left %f", MotorL.v);
-			Custom_LCD_Printf(0, 5, "Right %f", MotorR.v);
+		if (!sensorState) {
+			break;
 
 		}
 
-		decel = (currentVelocity * currentVelocity) / (2 * pitInLine);
-		targetVelocity = 0;
-
-		Custom_LCD_Clear();
-		while (currentVelocity > 0.01) {
-			Custom_LCD_Printf(0, 0, "%f", currentVelocity);
-			Custom_LCD_Printf(0, 1, "%f", decel);
+		char upper[9] = { 0 };
+		char lower[9] = { 0 };
+		for (int i = 0; i < 8; i++) {
+			upper[i] = ((sensorState >> (15 - i)) & 1) ? '1' : '0';
+			lower[i] = ((sensorState >> (7 - i)) & 1) ? '1' : '0';
 		}
+		Custom_LCD_Printf(0, 0, "STATE");
 
-		HAL_Delay(100);
-		Drive_Stop();
-		Motor_Stop();
-		Sensor_Stop();
-		Custom_LCD_Clear();
+		Custom_LCD_Printf(0, 1, upper);
+
+		Custom_LCD_Printf(0, 2, lower);
+		Custom_LCD_Printf(0, 3, "%6d", positionValue);
+		Custom_LCD_Printf(0, 4, "Left %f", MotorL.v);
+		Custom_LCD_Printf(0, 5, "Right %f", MotorR.v);
 
 	}
+
+	decel = (currentVelocity * currentVelocity) / (2 * pitInLine);
+	targetVelocity = 0;
+
+	Custom_LCD_Clear();
+	while (currentVelocity > 0.01) {
+		Custom_LCD_Printf(0, 0, "%f", currentVelocity);
+		Custom_LCD_Printf(0, 1, "%f", decel);
+	}
+
+	HAL_Delay(100);
+	Drive_Stop();
+	Motor_Stop();
+	Sensor_Stop();
+	Custom_LCD_Clear();
+
 }

@@ -39,11 +39,14 @@ typedef struct{
 	uint16_t right;
 }window_t;
 
+
 extern uint8_t windowStartIndex;
 extern uint8_t windowEndIndex;
 extern uint16_t sensorState;
 extern uint32_t whiteMax[16];
 extern uint32_t blackMax[16];
+
+extern window_t Window;
 
 extern float batteryVolt;
 

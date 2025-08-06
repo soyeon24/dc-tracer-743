@@ -17,5 +17,7 @@ void Change_accelSetting();
 void Change_decelSetting();
 void Change_curve_rate();
 void Change_peak_v();
+//void Buzzer_TIM15_IRQ();
+//void Buzzer_Start();
 
 #endif /* INC_SETTING_H_ */

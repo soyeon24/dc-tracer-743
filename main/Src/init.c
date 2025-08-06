@@ -129,7 +129,7 @@ void Init() {
 	uint32_t selected_index = 0;
 	uint32_t sw = CUSTOM_JS_NONE;
 	uint32_t numOfMenu = sizeof(menu) / sizeof(menu_t);
-	HAL_Delay(1000);
+//	HAL_Delay(1000);
 	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 	while (1) {

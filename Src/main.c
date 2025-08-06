@@ -195,10 +195,14 @@ int main(void)
 //  	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
 //  	__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_2,100);
 
+  	HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
+  	__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, 5);
+
 	LCD_Test();
 
-//  	HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
-//  	__HAL_TIM_SET_AUTORELOAD(&htim15, 0);
+  	HAL_TIM_PWM_Stop(&htim15, TIM_CHANNEL_1);
+  	__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, 0);
+
 //	HAL_TIMEx_PWMN_Start(&htim1,TIM_CHANNEL_2);
 //	__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_2,10);
   /* USER CODE END 2 */

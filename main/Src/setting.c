@@ -222,3 +222,13 @@ void Setting_Menu() {
 
 	}
 }
+
+
+//void Buzzer_TIM15_IRQ(){
+//	if(sensorState&~Window.center){
+//		__HAL_TIM_SET_COMPARE(&htim15,TIM_CHANNEL_2, TIM15->ARR/5 );
+//	}
+//}
+//void Buzzer_Start(){
+//	HAL_TIM_PWM_Start_IT(&htim15, TIM_CHANNEL_2);
+//}

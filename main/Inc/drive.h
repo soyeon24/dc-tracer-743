@@ -23,6 +23,7 @@ void Drive_Second();
 //void Drive_Test_Menu();
 void Mark_Debug();
 void Drive_Test_Menu();
+void Buzzer_Stop();
 
 extern volatile float targetVelocity;
 extern volatile float currentVelocity;

@@ -24,6 +24,7 @@
 #define ENCODER_RATIO 4096.f
 #define GEAR (63.f/17.f)
 #define WHEEL 0.035f //4cm라 가정
+#define RADIUS (WHEEL/2)
 #define TIME 0.0005
 #define PI M_PI
 #define TICK_PER_METER (GEAR/(WHEEL*PI))
@@ -55,11 +56,11 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP =0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
-	MotorL.gainI =670.0f;//390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP =70.0f;//0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
+	MotorL.gainI =33250.0f;//390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP =0.175;//0.23;//0.9f;//0.8f;// 0.8f; //0.97
-	MotorR.gainI = 580.0f;//400.0f;//0.0f;//
+	MotorR.gainP =60.f;//0.23;//0.9f;//0.8f;// 0.8f; //0.97
+	MotorR.gainI = 35000.0f;//400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더
@@ -223,9 +224,9 @@ void Motor_Test_Menu() {
 		}
 	}
 }
-int kkk = 0;
+//int kkk = 0;
 void Motor_LPTIM4_IRQ() {
-	kkk++;
+//	kkk++;
 
 	//input
 	MotorL.CurrEncVal = (uint16_t) LPTIM2->CNT;	//1은 왼쪽
@@ -239,18 +240,18 @@ void Motor_LPTIM4_IRQ() {
 	MotorR.PastEncVal = MotorR.CurrEncVal;
 
 	MotorL.EncV = ((float) MotorL.EncDiff) / TIME * ANGLE_PER_TICK;
-	MotorR.EncV = ((float) MotorR.EncDiff) / TIME * ANGLE_PER_TICK;
+	MotorR.EncV = ((float) MotorR.EncDiff) / TIME * ANGLE_PER_TICK; //각속도
 
 	MotorL.ComV = MotorL.v * TICK_PER_METER;
-	MotorR.ComV = MotorR.v * TICK_PER_METER;
+	MotorR.ComV = MotorR.v * TICK_PER_METER;// tick per sec
 
-	MotorL.ErrV = MotorL.ComV - MotorL.EncV;
-	MotorR.ErrV = MotorR.ComV - MotorR.EncV;
+	MotorL.ErrV = MotorL.ComV - MotorL.EncV*RADIUS;
+	MotorR.ErrV = MotorR.ComV - MotorR.EncV*RADIUS;
 
 	// I
 	MotorL.Integral += MotorL.ErrV * TIME;
 	MotorR.Integral += MotorR.ErrV * TIME;
-	/*주기를 2KHz에서 1KHz로 바꾸었다. 주기가 너무 빨라서 떨리는 현상이 발생할 수 있다. */
+	/*주기를 2KHz에서 1KHz로 바꾸었다. 주기가 너무 빨라서 떨리는 현상이 발생할 수 있다. 다시 2kHz로 바꿈*/
 	MotorL.CurPI = MotorL.Integral * MotorL.gainI + MotorL.ErrV * MotorL.gainP;
 	MotorR.CurPI = MotorR.Integral * MotorR.gainI + MotorR.ErrV * MotorR.gainP;
 
@@ -353,14 +354,14 @@ void Motor_Left_Gain_Both() {
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorL.gainP += 0.01;
+			MotorL.gainP +=5;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorL.gainP -= 0.05;
+			MotorL.gainP -= 5;
 		}
 			else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorL.gainI += 10;
+			MotorL.gainI *= 2;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorL.gainI -= 1;
+			MotorL.gainI /=2;
 		}
 
 	}
@@ -536,14 +537,14 @@ void Motor_Right_Gain_Both() {
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorR.gainP += 0.01;;
+			MotorR.gainP *= 2;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorR.gainP -= 0.005;
+			MotorR.gainP /= 2;
 		}
 			else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorR.gainI += 10;
+			MotorR.gainI *=2;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorR.gainI -= 10;
+			MotorR.gainI /= 2;
 		}
 
 	}
@@ -579,7 +580,7 @@ void Motor_Speed_Change() {
 		Custom_LCD_Printf(0, 3, "EV %f", MotorL.EncV);
 		Custom_LCD_Printf(0, 4, "R %f", MotorR.v);
 		Custom_LCD_Printf(0, 5, "EV %f", MotorR.EncV);
-		Custom_LCD_Printf(0, 6, "%d", kkk);
+//		Custom_LCD_Printf(0, 6, "%d", kkk);
 	}
 
 	Motor_Stop();

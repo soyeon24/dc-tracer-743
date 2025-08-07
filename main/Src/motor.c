@@ -18,7 +18,7 @@
 #include "../../MDK-ARM/Inc/gpio.h"
 #include "../../MDK-ARM/Inc/lptim.h"
 #include "../../MDK-ARM/Inc/tim.h"
-
+//pit in 0.5 speed1.5 0.1 speed 1.8
 #define ABS(x) ((x>0) ? x:(-x))
 #define MIN(a, b) ((a > b) ? b : a )
 #define  ENCODER_PULSE_PER_REVOLUTION 4096.f

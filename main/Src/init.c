@@ -82,7 +82,7 @@ void Battery_LCD_Picture() {
 	} else {
 		percentColor = 0xF800;
 	}
-	Custom_LCD_Printf(1, 9, "%.0f%%", batteryPercent * 100);
+	Custom_LCD_Printf(1, 9, "%f",batteryVolt);
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 41, 145, 1, 14, 0xFFFF);
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 41, 145, 35, 1, 0xFFFF);
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 41, 158, 35, 1, 0xFFFF);

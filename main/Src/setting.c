@@ -150,6 +150,11 @@ void Change_Pit_In() {
 	uint8_t sw = CUSTOM_JS_NONE;
 	while (1) {
 		Custom_LCD_Printf(0, 0, "%f",pitInLine);
+		Custom_LCD_Printf(0, 1, "up 0.01");
+
+		Custom_LCD_Printf(0, 2, "down -0.05");
+		Custom_LCD_Printf(0, 3, "to left");
+		Custom_LCD_Printf(0, 0, "-0.0005");
 		sw = Custom_Switch_Read();
 		if(sw== CUSTOM_JS_D_TO_U){
 			pitInLine += 0.01;
@@ -160,6 +165,10 @@ void Change_Pit_In() {
 		else if(sw == CUSTOM_JS_L_TO_R){
 			break;
 		}
+		else if(sw == CUSTOM_JS_R_TO_L){
+			pitInLine -= 0.0005f;
+					break;
+				}
 	}
 }
 

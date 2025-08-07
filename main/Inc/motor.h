@@ -24,10 +24,10 @@ typedef struct {
 	volatile float ComD; //커맨드 위치 (=목표 거리)
 	volatile float velocity_mps; //바퀴속도
 	volatile int32_t Duty;
-	volatile float ErrV;
+	volatile float error_rad_per_sec;
 	volatile float CurPI;
 	volatile float VoltPI;
-	volatile float Integral;
+	volatile float integral_rad_per_sec;
 	volatile float gainP;
 	volatile float gainI;
 	volatile uint32_t currentTick;

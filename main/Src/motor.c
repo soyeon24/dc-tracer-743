@@ -71,10 +71,10 @@ void Motor_Start() {
 	MotorL.ComD = 0; //커맨드 위치 (=목표 거리)
 	MotorL.velocity_mps = 0; //바퀴속도
 	MotorL.Duty = 0;
-	MotorL.ErrV = 0;
+	MotorL.error_rad_per_sec = 0;
 	MotorL.CurPI = 0;
 	MotorL.VoltPI = 0;
-	MotorL.Integral = 0;
+	MotorL.integral_rad_per_sec = 0;
 	MotorL.currentTick = 0;
 
 	MotorR.CurrEncVal = 0; //현재 엔코더
@@ -86,10 +86,10 @@ void Motor_Start() {
 	MotorR.ComD = 0; //커맨드 위치 (=목표 거리)
 	MotorR.velocity_mps = 0; //바퀴속도
 	MotorR.Duty = 0;
-	MotorR.ErrV = 0;
+	MotorR.error_rad_per_sec = 0;
 	MotorR.CurPI = 0;
 	MotorR.VoltPI = 0;
-	MotorR.Integral = 0;
+	MotorR.integral_rad_per_sec = 0;
 	MotorR.currentTick = 0;
 	HAL_LPTIM_Encoder_Start(MOTORR_ENCODER_TIMER, 65535); //왼쪽 엔코더
 	HAL_LPTIM_Encoder_Start(MOTORL_ENCODER_TIMER, 65535); //오른쪽 엔코더
@@ -247,15 +247,15 @@ void Motor_LPTIM4_IRQ() {
 	MotorL.wheel_rad_per_sec_cmd = MotorL.velocity_mps / RADIUS;
 	MotorR.wheel_rad_per_sec_cmd = MotorR.velocity_mps / RADIUS;
 
-	MotorL.ErrV = MotorL.wheel_rad_per_sec_cmd - MotorL.encoder_rad_per_sec;
-	MotorR.ErrV = MotorR.wheel_rad_per_sec_cmd - MotorR.encoder_rad_per_sec;
+	MotorL.error_rad_per_sec = MotorL.wheel_rad_per_sec_cmd - MotorL.encoder_rad_per_sec;
+	MotorR.error_rad_per_sec = MotorR.wheel_rad_per_sec_cmd - MotorR.encoder_rad_per_sec;
 
 	// I
-	MotorL.Integral += MotorL.ErrV * TIME;
-	MotorR.Integral += MotorR.ErrV * TIME;
+	MotorL.integral_rad_per_sec += MotorL.error_rad_per_sec * TIME;
+	MotorR.integral_rad_per_sec += MotorR.error_rad_per_sec * TIME;
 	/*주기를 2KHz에서 1KHz로 바꾸었다. 주기가 너무 빨라서 떨리는 현상이 발생할 수 있다. 다시 2kHz로 바꿈*/
-	MotorL.CurPI = MotorL.Integral * MotorL.gainI + MotorL.ErrV * MotorL.gainP;
-	MotorR.CurPI = MotorR.Integral * MotorR.gainI + MotorR.ErrV * MotorR.gainP;
+	MotorL.CurPI = MotorL.integral_rad_per_sec * MotorL.gainI + MotorL.error_rad_per_sec * MotorL.gainP;
+	MotorR.CurPI = MotorR.integral_rad_per_sec * MotorR.gainI + MotorR.error_rad_per_sec * MotorR.gainP;
 
 	MotorL.VoltPI = MotorL.CurPI * MOTOR_RES;
 	MotorR.VoltPI = MotorR.CurPI * MOTOR_RES;

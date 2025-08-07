@@ -17,9 +17,6 @@
 #include "../../MDK-ARM/Inc/lptim.h"
 #include "../../MDK-ARM/Inc/tim.h"
 
-//#define BUZZER_Pin GPIO_PIN_5
-//#define BUZZER_GPIO_Port GPIOE
-
 
 
 #define STATE_IDLE 0
@@ -144,7 +141,6 @@ void Save_Length(uint32_t *temp, uint32_t index) {
 }
 
 void Drive_LPTIM5_IRQ() {
-//	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
 	if (currentVelocity < targetVelocity) {
 		currentVelocity += accel * 0.0005f;
 		if (currentVelocity > targetVelocity) {
@@ -158,8 +154,8 @@ void Drive_LPTIM5_IRQ() {
 	}
 	float velocity_center = currentVelocity * curveDecel
 			/ (curveDecel + ABS(positionValue));
-	MotorR.v = velocity_center * (1 - curveRate * (float) positionValue);
-	MotorL.v = velocity_center * (1 + curveRate * (float) positionValue);
+	MotorR.velocity_mps = velocity_center * (1 - curveRate * (float) positionValue);
+	MotorL.velocity_mps = velocity_center * (1 + curveRate * (float) positionValue);
 
 }
 
@@ -497,6 +493,7 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		break;
 	}
 }
+
 void Drive_Second() {
 //	uint32_t tempMarkRead[400];
 //	endmarkCNT= 0;
@@ -756,8 +753,8 @@ void Drive_Test_Without_Motor() {
 
 		Custom_LCD_Printf(0, 2, lower);
 		Custom_LCD_Printf(0, 3, "%6d", positionValue);
-		Custom_LCD_Printf(0, 4, "Left %f", MotorL.v);
-		Custom_LCD_Printf(0, 5, "Right %f", MotorR.v);
+		Custom_LCD_Printf(0, 4, "Left %f", MotorL.velocity_mps);
+		Custom_LCD_Printf(0, 5, "Right %f", MotorR.velocity_mps);
 
 	}
 

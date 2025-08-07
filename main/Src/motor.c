@@ -21,14 +21,14 @@
 
 #define ABS(x) ((x>0) ? x:(-x))
 #define MIN(a, b) ((a > b) ? b : a )
-#define ENCODER_RATIO 4096.f
+#define  ENCODER_PULSE_PER_REVOLUTION 4096.f
 #define GEAR (63.f/17.f)
 #define WHEEL 0.035f //4cm라 가정
 #define RADIUS (WHEEL/2)
 #define TIME 0.0005
 #define PI M_PI
 #define TICK_PER_METER (GEAR/(WHEEL*PI))
-#define ANGLE_PER_TICK (1.0f/ENCODER_RATIO)
+#define ANGLE_PER_TICK (1.0f/ ENCODER_PULSE_PER_REVOLUTION)
 #define ANGLE_PER_METER (TICK_PER_METER * ENCODER_RATIO)
 #define RADIAN_PER_SEC (2.f * PI / TIME / ENCODER_RATIO)
 #define MOTOR_RES 0.68f//모터래지스터
@@ -56,20 +56,20 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP =70.0f;//0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
-	MotorL.gainI =33250.0f;//390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP = 0.4f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
+	MotorL.gainI =820.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP =60.f;//0.23;//0.9f;//0.8f;// 0.8f; //0.97
-	MotorR.gainI = 35000.0f;//400.0f;//0.0f;//
+	MotorR.gainP = 0.4f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97
+	MotorR.gainI = 1024.f; //400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더
-	MotorL.EncDiff = 0;	// 현재 - 이전 엔코더 == 거리 차이
-	MotorL.EncV = 0; //앤코더 변화 속도 (=각속도)
+	MotorL.delta_tick = 0;	// 현재 - 이전 엔코더 == 거리 차이
+	MotorL.encoder_rad_per_sec = 0; //앤코더 변화 속도 (=각속도)
 	MotorL.EncD = 0; // 엔코더 변화 거리(=속도의 시간대비 적분값)
-	MotorL.ComV = 0; //커맨드 속도 (=목표 속도)
+	MotorL.target_tick_per_sec = 0; //커맨드 속도 (=목표 속도)
 	MotorL.ComD = 0; //커맨드 위치 (=목표 거리)
-	MotorL.v = 0; //바퀴속도
+	MotorL.velocity_mps = 0; //바퀴속도
 	MotorL.Duty = 0;
 	MotorL.ErrV = 0;
 	MotorL.CurPI = 0;
@@ -77,21 +77,20 @@ void Motor_Start() {
 	MotorL.Integral = 0;
 	MotorL.currentTick = 0;
 
-
 	MotorR.CurrEncVal = 0; //현재 엔코더
 	MotorR.PastEncVal = 0; //이전 엔코더
-	MotorR.EncDiff = 0;	// 현재 - 이전 엔코더 == 거리 차이
-	MotorR.EncV = 0; //앤코더 변화 속도 (=각속도)
+	MotorR.delta_tick = 0;	// 현재 - 이전 엔코더 == 거리 차이
+	MotorR.encoder_rad_per_sec = 0; //앤코더 변화 속도 (=각속도)
 	MotorR.EncD = 0; // 엔코더 변화 거리(=속도의 시간대비 적분값)
-	MotorR.ComV = 0; //커맨드 속도 (=목표 속도)
+	MotorR.target_tick_per_sec = 0; //커맨드 속도 (=목표 속도)
 	MotorR.ComD = 0; //커맨드 위치 (=목표 거리)
-	MotorR.v = 0; //바퀴속도
+	MotorR.velocity_mps = 0; //바퀴속도
 	MotorR.Duty = 0;
 	MotorR.ErrV = 0;
 	MotorR.CurPI = 0;
 	MotorR.VoltPI = 0;
 	MotorR.Integral = 0;
-	MotorR.currentTick=0;
+	MotorR.currentTick = 0;
 	HAL_LPTIM_Encoder_Start(MOTORR_ENCODER_TIMER, 65535); //왼쪽 엔코더
 	HAL_LPTIM_Encoder_Start(MOTORL_ENCODER_TIMER, 65535); //오른쪽 엔코더
 
@@ -181,11 +180,12 @@ void Motor_Stop() {
 
 }
 
-menu_t motor_menu[] = {{"enc",Encoder_Test}, { "speed T", Motor_Speed_Change }, { "1.left gP ",
-		Motor_Left_Gain_Both }, { "2.Right PI", Motor_Right_Gain_Both}, { "Left PI",
-				Motor_Left_Gain_P }, { "PWM Test", Motor_Test_76EHWAN }, {
-		"1.left gI ", Motor_Left_Gain_I },
-		{ "back menu", Back_To_Menu } };
+menu_t motor_menu[] = { { "enc", Encoder_Test },
+		{ "speed T", Motor_Speed_Change },
+		{ "1.left g ", Motor_Left_Gain_Both }, { "2.Right PI",
+				Motor_Right_Gain_Both }, { "Left PI", Motor_Left_Gain_P }, {
+				"PWM Test", Motor_Test_76EHWAN }, { "1.left gI ",
+				Motor_Left_Gain_I }, { "back menu", Back_To_Menu } };
 
 uint32_t MOTOR_MENU_CNT = (sizeof(motor_menu) / sizeof(menu_t));
 
@@ -232,21 +232,23 @@ void Motor_LPTIM4_IRQ() {
 	MotorL.CurrEncVal = (uint16_t) LPTIM2->CNT;	//1은 왼쪽
 	MotorR.CurrEncVal = (uint16_t) -LPTIM1->CNT;	//2는 오른쪽 감소
 
-	MotorL.EncDiff = (int16_t) MotorL.CurrEncVal - (int16_t) MotorL.PastEncVal;
-	MotorR.EncDiff = (int16_t) MotorR.CurrEncVal - (int16_t) MotorR.PastEncVal;
-
+	MotorL.delta_tick = (int16_t) MotorL.CurrEncVal - (int16_t) MotorL.PastEncVal;
+	MotorR.delta_tick = (int16_t) MotorR.CurrEncVal - (int16_t) MotorR.PastEncVal;
 
 	MotorL.PastEncVal = MotorL.CurrEncVal;
 	MotorR.PastEncVal = MotorR.CurrEncVal;
 
-	MotorL.EncV = ((float) MotorL.EncDiff) / TIME * ANGLE_PER_TICK;
-	MotorR.EncV = ((float) MotorR.EncDiff) / TIME * ANGLE_PER_TICK; //각속도
+	MotorL.encoder_rad_per_sec = ((float) MotorL.delta_tick) / TIME * ANGLE_PER_TICK;
+	MotorR.encoder_rad_per_sec = ((float) MotorR.delta_tick) / TIME * ANGLE_PER_TICK; //각속도
 
-	MotorL.ComV = MotorL.v * TICK_PER_METER;
-	MotorR.ComV = MotorR.v * TICK_PER_METER;// tick per sec
+	MotorL.target_tick_per_sec = MotorL.velocity_mps * TICK_PER_METER;
+	MotorR.target_tick_per_sec = MotorR.velocity_mps * TICK_PER_METER; // tick per sec
 
-	MotorL.ErrV = MotorL.ComV - MotorL.EncV*RADIUS;
-	MotorR.ErrV = MotorR.ComV - MotorR.EncV*RADIUS;
+	MotorL.wheel_rad_per_sec_cmd = MotorL.velocity_mps / RADIUS;
+	MotorR.wheel_rad_per_sec_cmd = MotorR.velocity_mps / RADIUS;
+
+	MotorL.ErrV = MotorL.wheel_rad_per_sec_cmd - MotorL.encoder_rad_per_sec;
+	MotorR.ErrV = MotorR.wheel_rad_per_sec_cmd - MotorR.encoder_rad_per_sec;
 
 	// I
 	MotorL.Integral += MotorL.ErrV * TIME;
@@ -269,8 +271,8 @@ void Motor_LPTIM4_IRQ() {
 	MotorL.Duty = TIM8->ARR * MotorL.VoltPI / batteryVolt;
 	MotorR.Duty = TIM8->ARR * MotorR.VoltPI / batteryVolt;
 
-	MotorL.currentTick += (int32_t)MotorL.EncDiff;
-	MotorR.currentTick +=(int32_t)MotorR.EncDiff;
+	MotorL.currentTick += (int32_t) MotorL.delta_tick;
+	MotorR.currentTick += (int32_t) MotorR.delta_tick;
 
 	// 정방향: PH = 0, 역방향: PH = 1
 	HAL_GPIO_WritePin(MOTORL_PH_GPIO_Port, MOTORL_PH_Pin, !DirL);
@@ -278,8 +280,6 @@ void Motor_LPTIM4_IRQ() {
 
 	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORL_CHANNEL, MotorL.Duty);
 	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORR_CHANNEL, MotorR.Duty);
-
-
 
 }
 
@@ -346,22 +346,21 @@ void Motor_Left_Gain_Both() {
 		Custom_LCD_Printf(0, 0, "%9f", MotorL.gainP);
 		Custom_LCD_Printf(0, 1, "%f", MotorL.gainI);
 		Custom_LCD_Printf(0, 2, "encV %5d", MotorL.CurrEncVal);
-		Custom_LCD_Printf(0, 3, "%9d ", MotorL.EncDiff); //0
-		Custom_LCD_Printf(0, 4, "%f", MotorL.EncV); //0
-		Custom_LCD_Printf(0, 5, "%9f", MotorL.ComV);
+		Custom_LCD_Printf(0, 3, "%9d ", MotorL.delta_tick); //0
+		Custom_LCD_Printf(0, 4, "%f", MotorL.encoder_rad_per_sec); //0
+		Custom_LCD_Printf(0, 5, "%9f", MotorL.target_tick_per_sec);
 		Custom_LCD_Printf(0, 6, "%9d", MotorL.Duty);
 		Custom_LCD_Printf(0, 7, "%9d", LPTIM2->CNT);
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorL.gainP +=5;
+			MotorL.gainP += 0.05;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorL.gainP -= 5;
-		}
-			else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorL.gainI *= 2;
+			MotorL.gainP -= 0.05;
+		} else if (sw == CUSTOM_JS_D_TO_U) {
+			MotorL.gainI +=10;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorL.gainI /=2;
+			MotorL.gainI -=10;
 		}
 
 	}
@@ -383,9 +382,9 @@ void Motor_Left_Gain_P() {
 		Custom_LCD_Printf(0, 0, "%9f", MotorL.gainP);
 		Custom_LCD_Printf(0, 1, "%f", MotorL.gainI);
 		Custom_LCD_Printf(0, 2, "encV %5d", MotorL.CurrEncVal);
-		Custom_LCD_Printf(0, 3, "%9d ", MotorL.EncDiff); //0
-		Custom_LCD_Printf(0, 4, "%f", MotorL.EncV); //0
-		Custom_LCD_Printf(0, 5, "%9f", MotorL.ComV);
+		Custom_LCD_Printf(0, 3, "%9d ", MotorL.delta_tick); //0
+		Custom_LCD_Printf(0, 4, "%f", MotorL.encoder_rad_per_sec); //0
+		Custom_LCD_Printf(0, 5, "%9f", MotorL.target_tick_per_sec);
 		Custom_LCD_Printf(0, 6, "%9d", MotorL.Duty);
 		Custom_LCD_Printf(0, 7, "%9d", LPTIM2->CNT);
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
@@ -420,15 +419,15 @@ void Motor_Left_Gain_I() {
 		sw = Custom_Switch_Read();
 		Custom_LCD_Printf(0, 0, "%9f", MotorL.gainI);
 		Custom_LCD_Printf(0, 1, "encV %5d", MotorL.CurrEncVal);
-		Custom_LCD_Printf(0, 2, "%9d ", MotorL.EncDiff); //0
-		Custom_LCD_Printf(0, 3, "%f", MotorL.EncV); //0
-		Custom_LCD_Printf(0, 4, "%9f", MotorL.ComV);
+		Custom_LCD_Printf(0, 2, "%9d ", MotorL.delta_tick); //0
+		Custom_LCD_Printf(0, 3, "%f", MotorL.encoder_rad_per_sec); //0
+		Custom_LCD_Printf(0, 4, "%9f", MotorL.target_tick_per_sec);
 		Custom_LCD_Printf(0, 5, "%9d", MotorL.Duty);
 		Custom_LCD_Printf(0, 6, "%9d", LPTIM2->CNT);
 		Custom_LCD_Printf(0, 7, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 8, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorL.gainI +=10.0f;
+			MotorL.gainI += 10.0f;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
 
 			MotorL.gainI -= 10.0f;
@@ -457,9 +456,9 @@ void Motor_Right_Gain_P() {
 		sw = Custom_Switch_Read();
 		Custom_LCD_Printf(0, 0, "%9f", MotorR.gainP);
 		Custom_LCD_Printf(0, 1, "encV %5d", MotorR.CurrEncVal);
-		Custom_LCD_Printf(0, 2, "%9d ", MotorR.EncDiff); //0
-		Custom_LCD_Printf(0, 3, "%f", MotorR.EncV); //0
-		Custom_LCD_Printf(0, 4, "%9f", MotorR.ComV);
+		Custom_LCD_Printf(0, 2, "%9d ", MotorR.delta_tick); //0
+		Custom_LCD_Printf(0, 3, "%f", MotorR.encoder_rad_per_sec); //0
+		Custom_LCD_Printf(0, 4, "%9f", MotorR.target_tick_per_sec);
 		Custom_LCD_Printf(0, 5, "%9d", MotorR.Duty);
 		Custom_LCD_Printf(0, 6, "%9d", MotorR.CurrEncVal);
 		Custom_LCD_Printf(0, 7, "%f", batteryVolt);
@@ -492,8 +491,8 @@ void Motor_Right_Gain_I() {
 		sw = Custom_Switch_Read();
 		Custom_LCD_Printf(0, 0, "%9f", MotorR.gainI);
 		Custom_LCD_Printf(0, 1, "%5d", MotorR.CurrEncVal);
-		Custom_LCD_Printf(0, 2, "%9d", MotorR.EncDiff); //0
-		Custom_LCD_Printf(0, 3, "%9f", MotorR.EncV); //0
+		Custom_LCD_Printf(0, 2, "%9d", MotorR.delta_tick); //0
+		Custom_LCD_Printf(0, 3, "%9f", MotorR.encoder_rad_per_sec); //0
 		Custom_LCD_Printf(0, 4, "%9f", MotorR.EncD);
 		Custom_LCD_Printf(0, 5, "%9d", MotorR.Duty);
 		Custom_LCD_Printf(0, 6, "%9d", LPTIM1->CNT);
@@ -529,23 +528,22 @@ void Motor_Right_Gain_Both() {
 		Custom_LCD_Printf(0, 0, "%9f", MotorR.gainP);
 		Custom_LCD_Printf(0, 1, "%f", MotorR.gainI);
 		Custom_LCD_Printf(0, 2, "encV %5d", MotorR.CurrEncVal);
-		Custom_LCD_Printf(0, 3, "%9d ", MotorR.EncDiff); //0
-		Custom_LCD_Printf(0, 4, "%f", MotorR.EncV); //0
-		Custom_LCD_Printf(0, 5, "%9f", MotorR.ComV);
+		Custom_LCD_Printf(0, 3, "%9d ", MotorR.delta_tick); //0
+		Custom_LCD_Printf(0, 4, "%f", MotorR.encoder_rad_per_sec); //0
+		Custom_LCD_Printf(0, 5, "%9f", MotorR.target_tick_per_sec);
 		Custom_LCD_Printf(0, 6, "%9d", MotorL.Duty);
 		Custom_LCD_Printf(0, 7, "%9d", LPTIM1->CNT);
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorR.gainP *= 2;
-		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorR.gainP /= 2;
-		}
-			else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorR.gainI *=2;
-		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorR.gainI /= 2;
-		}
+					MotorL.gainP += 0.05;
+				} else if (sw == CUSTOM_JS_R_TO_L) {
+					MotorL.gainP -= 0.05;
+				} else if (sw == CUSTOM_JS_D_TO_U) {
+					MotorL.gainI +=10;
+				} else if (sw == CUSTOM_JS_U_TO_D) {
+					MotorL.gainI -=10;
+				}
 
 	}
 
@@ -554,7 +552,6 @@ void Motor_Right_Gain_Both() {
 	HAL_LPTIM_Encoder_Stop(MOTORR_ENCODER_TIMER);
 	HAL_LPTIM_Encoder_Stop(MOTORL_ENCODER_TIMER);
 }
-
 
 void Motor_Speed_Change() {
 	currentVelocity = 0;
@@ -576,10 +573,10 @@ void Motor_Speed_Change() {
 		}
 		Custom_LCD_Printf(0, 0, "tv %f", targetVelocity);
 		Custom_LCD_Printf(0, 1, "cv %f", currentVelocity);
-		Custom_LCD_Printf(0, 2, "L %f", MotorL.v);
-		Custom_LCD_Printf(0, 3, "EV %f", MotorL.EncV);
-		Custom_LCD_Printf(0, 4, "R %f", MotorR.v);
-		Custom_LCD_Printf(0, 5, "EV %f", MotorR.EncV);
+		Custom_LCD_Printf(0, 2, "L %f", MotorL.velocity_mps);
+		Custom_LCD_Printf(0, 3, "EV %f", MotorL.encoder_rad_per_sec);
+		Custom_LCD_Printf(0, 4, "R %f", MotorR.velocity_mps);
+		Custom_LCD_Printf(0, 5, "EV %f", MotorR.encoder_rad_per_sec);
 //		Custom_LCD_Printf(0, 6, "%d", kkk);
 	}
 
@@ -681,7 +678,7 @@ void Motor_Test_76EHWAN() {
 	while (1) {
 		Custom_LCD_Printf(0, 0, "%5d", MOTORR_ENCODER_TIMER.Instance->CNT);
 		Custom_LCD_Printf(0, 1, "%5d", MOTORL_ENCODER_TIMER.Instance->CNT);
-		Custom_LCD_Printf(0, 3, "%f", MotorL.EncV * MOTOR_KE);
+		Custom_LCD_Printf(0, 3, "%f", MotorL.encoder_rad_per_sec * MOTOR_KE);
 
 		sw = Custom_Switch_Read();
 		if (sw == CUSTOM_JS_D_TO_U) {

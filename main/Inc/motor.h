@@ -17,17 +17,17 @@ void Motor_LPTIM4_IRQ();
 typedef struct {
 	volatile uint16_t CurrEncVal; //현재 엔코더
 	volatile uint16_t PastEncVal; //이전 엔코더
-	volatile int16_t delta_tick;	// 현재 - 이전 엔코더 == 거리 차이
-	volatile float encoder_rad_per_sec; //앤코더 변화 속도 (=각속도)
+	volatile int16_t EncDiff;	// 현재 - 이전 엔코더 == 거리 차이
+	volatile float EncV; //앤코더 변화 속도 (=각속도)
 	volatile float EncD; // 엔코더 변화 거리(=속도의 시간대비 적분값)
-	volatile float target_tick_per_sec; //커맨드 속도 (=목표 속도)
+	volatile float ComV; //커맨드 속도 (=목표 속도)
 	volatile float ComD; //커맨드 위치 (=목표 거리)
-	volatile float velocity_mps; //바퀴속도
+	volatile float v; //바퀴속도
 	volatile int32_t Duty;
-	volatile float error_rad_per_sec;
+	volatile float ErrV;
 	volatile float CurPI;
 	volatile float VoltPI;
-	volatile float integral_rad_per_sec;
+	volatile float Integral;
 	volatile float gainP;
 	volatile float gainI;
 	volatile uint32_t currentTick;

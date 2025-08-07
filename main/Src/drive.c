@@ -154,8 +154,8 @@ void Drive_LPTIM5_IRQ() {
 	}
 	float velocity_center = currentVelocity * curveDecel
 			/ (curveDecel + ABS(positionValue));
-	MotorR.velocity_mps = velocity_center * (1 - curveRate * (float) positionValue);
-	MotorL.velocity_mps = velocity_center * (1 + curveRate * (float) positionValue);
+	MotorR.v = velocity_center * (1 - curveRate * (float) positionValue);
+	MotorL.v = velocity_center * (1 + curveRate * (float) positionValue);
 
 }
 
@@ -753,8 +753,8 @@ void Drive_Test_Without_Motor() {
 
 		Custom_LCD_Printf(0, 2, lower);
 		Custom_LCD_Printf(0, 3, "%6d", positionValue);
-		Custom_LCD_Printf(0, 4, "Left %f", MotorL.velocity_mps);
-		Custom_LCD_Printf(0, 5, "Right %f", MotorR.velocity_mps);
+		Custom_LCD_Printf(0, 4, "Left %f", MotorL.v);
+		Custom_LCD_Printf(0, 5, "Right %f", MotorR.v);
 
 	}
 

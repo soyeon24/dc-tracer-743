@@ -51,7 +51,7 @@ volatile float accel;
 volatile float accelSetting = 4.5f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
-volatile float pitInLine = 0.25f;
+volatile float pitInLine = 0.07f;
 volatile float curveRate = 0.000068f;
 volatile float curveDecel = 19000.f;
 volatile uint32_t saveTick = 3000;
@@ -287,7 +287,7 @@ void Drive_First() {
 	uint8_t crossCNT = 0;
 	uint8_t markLeftCNT = 0;
 	uint8_t markRightCNT = 0;
-
+	markIndex =0;
 	uint8_t mark;
 	currentVelocity = 0;
 

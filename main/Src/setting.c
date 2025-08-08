@@ -17,7 +17,76 @@
 
 #define SETTING_MENU_CNT 8
 
-menu_t settingMenu[] = { {"1. target V",Change_Target_Velocity }, {"2. threshold", Change_Threshold},{"3. pit in",Change_Pit_In}, {"4. accel",Change_accelSetting},{"4. decel",Change_decelSetting}, {"curve rate", Change_curve_rate}, {"curveDecel", },{"back", Back_To_Menu}};
+menu_t settingMenu[] = { {"1. target V",Change_Target_Velocity }, {"2. threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+		Motor_Test_Menu } ,{"back", Back_To_Menu}};
+
+void target1_3pitin_58() {
+	Custom_LCD_Clear();
+	uint8_t sw = CUSTOM_JS_NONE;
+	while (1) {
+		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
+		Custom_LCD_Printf(0, 1,"pit in 0.058");
+		Custom_LCD_Printf(0, 3, "down");
+		sw = Custom_Switch_Read();
+		if(sw == CUSTOM_JS_L_TO_R){
+			targetVelocitySetting = 1.3;
+						pitInLine =0.058;
+			break;
+		}
+	}
+}
+
+void target1_5pitin_48() {
+	Custom_LCD_Clear();
+	uint8_t sw = CUSTOM_JS_NONE;
+	while (1) {
+		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
+		Custom_LCD_Printf(0, 1,"pit in 0.048");
+		Custom_LCD_Printf(0, 3, "down");
+		sw = Custom_Switch_Read();
+		if(sw == CUSTOM_JS_L_TO_R){
+			targetVelocitySetting = 1.5;
+						pitInLine =0.048;
+			break;
+		}
+	}
+}
+
+void target1_8pitin_6() {
+	Custom_LCD_Clear();
+	uint8_t sw = CUSTOM_JS_NONE;
+	while (1) {
+		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
+		Custom_LCD_Printf(0, 1,"pit in 0.006");
+		Custom_LCD_Printf(0, 3, "down");
+		sw = Custom_Switch_Read();
+		if(sw == CUSTOM_JS_L_TO_R){
+			targetVelocitySetting = 1.8;
+						pitInLine =0.006;
+			break;
+		}
+	}
+}
+void target1_7pitin_38() {
+	Custom_LCD_Clear();
+	uint8_t sw = CUSTOM_JS_NONE;
+	while (1) {
+		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
+		Custom_LCD_Printf(0, 1,"pit in 0.038");
+		Custom_LCD_Printf(0, 3, "down");
+		sw = Custom_Switch_Read();
+		 if(sw == CUSTOM_JS_L_TO_R){
+			targetVelocitySetting = 1.7;
+						pitInLine =0.038;
+			break;
+		}
+	}
+}
+
+
+
+
+
 void Change_curve_rate(){
 	Custom_LCD_Clear();
 	uint8_t sw = CUSTOM_JS_NONE;
@@ -150,24 +219,23 @@ void Change_Pit_In() {
 	uint8_t sw = CUSTOM_JS_NONE;
 	while (1) {
 		Custom_LCD_Printf(0, 0, "%f",pitInLine);
-		Custom_LCD_Printf(0, 1, "up 0.01");
+		Custom_LCD_Printf(0, 1, "up 0.001");
 
-		Custom_LCD_Printf(0, 2, "down -0.05");
-		Custom_LCD_Printf(0, 3, "to left");
-		Custom_LCD_Printf(0, 0, "-0.0005");
+		Custom_LCD_Printf(0, 2, "down -0.001");
+		Custom_LCD_Printf(0, 3, "left +0.005");
+//		Custom_LCD_Printf(0,4 , "");
 		sw = Custom_Switch_Read();
 		if(sw== CUSTOM_JS_D_TO_U){
-			pitInLine += 0.01;
+			pitInLine += 0.001;
 		}
 		else if(sw ==CUSTOM_JS_U_TO_D){
-			pitInLine -= 0.005f;
+			pitInLine -= 0.001f;
 		}
 		else if(sw == CUSTOM_JS_L_TO_R){
 			break;
 		}
 		else if(sw == CUSTOM_JS_R_TO_L){
-			pitInLine -= 0.0005f;
-					break;
+			pitInLine +=0.005f;
 				}
 	}
 }

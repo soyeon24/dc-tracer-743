@@ -35,10 +35,9 @@ void Setting() {
 }
 
 menu_t menu[] = { { "1. Cali ",
-		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "4.sec drive ",
-				Drive_Second }, { "mark debug ",
-						Mark_Debug},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
-		Motor_Test_Menu } };
+		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "tv 1.3 ",
+				target1_3pitin_58 }, { "tv 1.5 ",
+						target1_5pitin_48},{ "1.7",target1_7pitin_38 },{"tv 1.8",target1_8pitin_6}, { "3. settings",Setting_Menu }};
 
 void Button_Test() {
 	int i = 0;

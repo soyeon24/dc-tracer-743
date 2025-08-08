@@ -17,74 +17,8 @@
 
 #define SETTING_MENU_CNT 8
 
-menu_t settingMenu[] = { {"1. target V",Change_Target_Velocity }, {"2. threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+menu_t settingMenu[] = { {"1. target V",Change_Target_Velocity }, {"threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } ,{"back", Back_To_Menu}};
-
-void target1_3pitin_58() {
-	Custom_LCD_Clear();
-	uint8_t sw = CUSTOM_JS_NONE;
-	while (1) {
-		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
-		Custom_LCD_Printf(0, 1,"pit in 0.058");
-		Custom_LCD_Printf(0, 3, "down");
-		sw = Custom_Switch_Read();
-		if(sw == CUSTOM_JS_L_TO_R){
-			targetVelocitySetting = 1.3;
-						pitInLine =0.058;
-			break;
-		}
-	}
-}
-
-void target1_5pitin_48() {
-	Custom_LCD_Clear();
-	uint8_t sw = CUSTOM_JS_NONE;
-	while (1) {
-		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
-		Custom_LCD_Printf(0, 1,"pit in 0.048");
-		Custom_LCD_Printf(0, 3, "down");
-		sw = Custom_Switch_Read();
-		if(sw == CUSTOM_JS_L_TO_R){
-			targetVelocitySetting = 1.5;
-						pitInLine =0.048;
-			break;
-		}
-	}
-}
-
-void target1_8pitin_6() {
-	Custom_LCD_Clear();
-	uint8_t sw = CUSTOM_JS_NONE;
-	while (1) {
-		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
-		Custom_LCD_Printf(0, 1,"pit in 0.006");
-		Custom_LCD_Printf(0, 3, "down");
-		sw = Custom_Switch_Read();
-		if(sw == CUSTOM_JS_L_TO_R){
-			targetVelocitySetting = 1.8;
-						pitInLine =0.006;
-			break;
-		}
-	}
-}
-void target1_7pitin_38() {
-	Custom_LCD_Clear();
-	uint8_t sw = CUSTOM_JS_NONE;
-	while (1) {
-		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
-		Custom_LCD_Printf(0, 1,"pit in 0.035");
-		Custom_LCD_Printf(0, 3, "down");
-		sw = Custom_Switch_Read();
-		 if(sw == CUSTOM_JS_L_TO_R){
-			targetVelocitySetting = 1.7;
-						pitInLine =0.035;
-			break;
-		}
-	}
-}
-
-
-
 
 
 void Change_curve_rate(){
@@ -145,10 +79,10 @@ void Change_accelSetting(){
 	Custom_LCD_Clear();
 	uint8_t sw = CUSTOM_JS_NONE;
 	while (1) {
-		Custom_LCD_Printf(0, 0, "%f", targetVelocitySetting);
+		Custom_LCD_Printf(0, 0, "%f", accelSetting);
 		sw = Custom_Switch_Read();
 		if(sw== CUSTOM_JS_D_TO_U){
-			accelSetting+= 0.1;
+			accelSetting+= 0.5;
 		}
 		else if(sw ==CUSTOM_JS_U_TO_D){
 			accelSetting -= 0.1;
@@ -240,6 +174,23 @@ void Change_Pit_In() {
 	}
 }
 
+void Change_Target_Velocity_Pit_In() {
+	Custom_LCD_Clear();
+	uint8_t sw = CUSTOM_JS_NONE;
+	while (1) {
+		Custom_LCD_Printf(0, 0, "%f", targetVelocitySetting);
+		sw = Custom_Switch_Read();
+		if(sw== CUSTOM_JS_D_TO_U){
+			targetVelocityPitinSetting += 0.1;
+		}
+		else if(sw ==CUSTOM_JS_U_TO_D){
+			targetVelocityPitinSetting -= 0.1;
+		}
+		else if(sw == CUSTOM_JS_L_TO_R){
+			break;
+		}
+	}
+}
 
 
 void Setting_Menu_Print(uint32_t index) {

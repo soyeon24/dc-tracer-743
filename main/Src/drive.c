@@ -63,7 +63,7 @@ volatile float currentVelocity;
 volatile float targetVelocity;
 volatile float targetVelocitySetting = 2.5f;
 volatile float targetVelocityPitin;
-volatile float targetVelocityPitinSetting;
+volatile float targetVelocityPitinSetting = 2.5f;
 
 volatile float peakVelocity = 2.0f;
 
@@ -312,8 +312,8 @@ void Drive_First() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorStateSum & MASKLEFT);
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorStateSum & MASKRIGHT);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorState & ~(Window.center | Window.right));
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
 		uint8_t buzzer =
 				(sensorState & ~Window.center) ?
 						__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
@@ -416,7 +416,7 @@ void Drive_First_Pit_In_Correct() {
 	uint32_t markIndexPitIn = 0;
 	uint8_t mark;
 	currentVelocity = 0;
-
+	targetVelocityPitin=targetVelocityPitinSetting;
 //input
 	uint8_t sw = CUSTOM_JS_NONE;
 	accel = accelSetting;
@@ -438,8 +438,8 @@ void Drive_First_Pit_In_Correct() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorStateSum & MASKLEFT);
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorStateSum & MASKRIGHT);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorState & ~(Window.center | Window.right));
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
 		uint8_t buzzer =
 				(sensorState & ~Window.center) ?
 						__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
@@ -473,7 +473,7 @@ void Drive_First_Pit_In_Correct() {
 
 		}
 		if (markSaveFirst[markIndexPitIn + 1] == MARK_END) {
-			targetVelocity = 2.5f;
+			targetVelocity = targetVelocityPitin;
 		}
 	}
 

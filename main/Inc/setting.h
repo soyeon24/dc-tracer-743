@@ -17,10 +17,7 @@ void Change_accelSetting();
 void Change_decelSetting();
 void Change_curve_rate();
 void Change_peak_v();
-void target1_3pitin_58();
-void target1_5pitin_48();
-void target1_8pitin_6();
-void target1_7pitin_38();
+void Change_curveDecel();
 //void Buzzer_TIM15_IRQ();
 //void Buzzer_Start();
 

@@ -72,12 +72,12 @@ void target1_7pitin_38() {
 	uint8_t sw = CUSTOM_JS_NONE;
 	while (1) {
 		Custom_LCD_Printf(0, 0, "tv %f",targetVelocitySetting);
-		Custom_LCD_Printf(0, 1,"pit in 0.038");
+		Custom_LCD_Printf(0, 1,"pit in 0.035");
 		Custom_LCD_Printf(0, 3, "down");
 		sw = Custom_Switch_Read();
 		 if(sw == CUSTOM_JS_L_TO_R){
 			targetVelocitySetting = 1.7;
-						pitInLine =0.038;
+						pitInLine =0.035;
 			break;
 		}
 	}

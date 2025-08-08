@@ -24,6 +24,7 @@ void Drive_Second();
 void Mark_Debug();
 void Drive_Test_Menu();
 void Buzzer_Stop();
+void Drive_First_Pit_In_Correct();
 
 extern volatile float targetVelocity;
 extern volatile float currentVelocity;

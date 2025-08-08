@@ -17,8 +17,6 @@
 #include "../../MDK-ARM/Inc/lptim.h"
 #include "../../MDK-ARM/Inc/tim.h"
 
-
-
 #define STATE_IDLE 0
 #define STATE_CROSS 1
 #define STATE_MARK 2
@@ -51,7 +49,7 @@ volatile float accel;
 volatile float accelSetting = 4.5f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
-volatile float pitInLine = 0.07f;
+volatile float pitInLine = 0.09f;
 volatile float curveRate = 0.000068f;
 volatile float curveDecel = 19000.f;
 volatile uint32_t saveTick = 3000;
@@ -64,6 +62,8 @@ volatile int indexMarkcnt = 0;
 volatile float currentVelocity;
 volatile float targetVelocity;
 volatile float targetVelocitySetting = 2.5f;
+volatile float targetVelocityPitin;
+volatile float targetVelocityPitinSetting;
 
 volatile float peakVelocity = 2.0f;
 
@@ -84,10 +84,11 @@ uint32_t secIndexmark = 0;
 
 uint32_t safeDistance = 60;
 
-menu_t drive_menu[] = { { "1st D", Drive_First }, { "mark debug", Mark_Debug },
-		{ "2nd D", Drive_Second }, { "4.encoder", Encoder_Test }, { "PWM Test",
-				Motor_Test_76EHWAN }, { "5.S posi", Position_Test }, {
-				"6.S Test ", Sensor_Test_Menu }, { "back menu", Back_To_Menu } };
+menu_t drive_menu[] = { { "1st D", Drive_First }, { "2nd D slow",
+		Drive_First_Pit_In_Correct }, { "2nd D", Drive_Second }, { "4.encoder",
+		Encoder_Test }, { "PWM Test", Motor_Test_76EHWAN }, { "5.S posi",
+		Position_Test }, { "6.S Test ", Sensor_Test_Menu }, { "back menu",
+		Back_To_Menu } };
 
 uint32_t DRIVE_MENU_CNT = (sizeof(drive_menu) / sizeof(menu_t));
 
@@ -167,13 +168,12 @@ void Drive_Stop() {
 	HAL_LPTIM_Counter_Stop_IT(&hlptim5);
 }
 
-void Buzzer_Start(){
+void Buzzer_Start() {
 	HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
 	__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, 0);
 }
 
-
-void Buzzer_Stop(){
+void Buzzer_Stop() {
 	HAL_TIM_PWM_Stop(&htim15, TIM_CHANNEL_1);
 
 }
@@ -287,7 +287,7 @@ void Drive_First() {
 	uint8_t crossCNT = 0;
 	uint8_t markLeftCNT = 0;
 	uint8_t markRightCNT = 0;
-	markIndex =0;
+	markIndex = 0;
 	uint8_t mark;
 	currentVelocity = 0;
 
@@ -312,9 +312,11 @@ void Drive_First() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorState & Window.left);
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
-		uint8_t buzzer = (sensorState & ~Window.center) ? __HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorStateSum & MASKLEFT);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorStateSum & MASKRIGHT);
+		uint8_t buzzer =
+				(sensorState & ~Window.center) ?
+						__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
 		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
@@ -395,6 +397,109 @@ void Drive_First() {
 		}
 		if (sw == CUSTOM_JS_U_TO_D) {
 
+			break;
+		} else if (sw == CUSTOM_JS_D_TO_U) {
+			break;
+		}
+	}
+}
+
+void Drive_First_Pit_In_Correct() {
+//output
+
+//	uint32_t tempMarkRead[400];
+//	int32_t tempMarkLength[400];
+	uint8_t endmarkCNT = 0;
+	uint8_t crossCNT = 0;
+	uint8_t markLeftCNT = 0;
+	uint8_t markRightCNT = 0;
+	uint32_t markIndexPitIn = 0;
+	uint8_t mark;
+	currentVelocity = 0;
+
+//input
+	uint8_t sw = CUSTOM_JS_NONE;
+	accel = accelSetting;
+	targetVelocity = targetVelocitySetting;
+	decel = decelSetting;
+
+	if (!(whiteMax[1] - blackMax[1])) {
+		while (1) {
+			POINT_COLOR = RED;
+			BACK_COLOR = BLACK;
+//			Custom_LCD_Printf(0, 0, "do cali");
+		}
+	}
+
+	Sensor_Start();
+
+	HAL_Delay(10);
+	Buzzer_Start();
+	Motor_Start();
+	Drive_Start();
+	while (endmarkCNT < 2) {
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorStateSum & MASKLEFT);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorStateSum & MASKRIGHT);
+		uint8_t buzzer =
+				(sensorState & ~Window.center) ?
+						__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
+		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+
+		if ((endmarkCNT == 0) && (crossCNT == 1)) {
+			endmarkCNT++;
+		}
+//		Custom_LCD_Printf(0, 0, "in fisrt");
+//		Custom_LCD_Printf(0, 0, "%d",MotorL.currentTick );
+		mark = State_Machine();
+		if (mark == MARK_END) {
+
+			markIndexPitIn++;
+			endmarkCNT++;
+		} else if (mark == MARK_CROSS) {
+
+			markIndexPitIn++;
+			crossCNT++;
+		} else if (mark == MARK_RIGHT) {
+
+			markIndexPitIn++;
+			markRightCNT++;
+		} else if (mark == MARK_LEFT) {
+
+			markIndexPitIn++;
+			markLeftCNT++;
+		}
+		if (!sensorState) {
+			break;
+
+		}
+		if (markSaveFirst[markIndexPitIn + 1] == MARK_END) {
+			targetVelocity = 2.5f;
+		}
+	}
+
+	decel = (currentVelocity * currentVelocity) / (2 * pitInLine);
+	targetVelocity = 0;
+
+	while (currentVelocity > 0.01) {
+	}
+	currentVelocity = 0;
+
+	HAL_Delay(500);
+	Drive_Stop();
+	Motor_Stop();
+	Sensor_Stop();
+	Buzzer_Stop();
+	Custom_LCD_Clear();
+	while (1) {
+		sw = Custom_Switch_Read();
+		Custom_LCD_Printf(0, 0, "Save down");
+		Custom_LCD_Printf(0, 1, "Left %d", markLeftCNT);
+		Custom_LCD_Printf(0, 2, "Right %d", markRightCNT);
+		Custom_LCD_Printf(0, 3, "cross %d", crossCNT);
+		Custom_LCD_Printf(0, 4, "end %d", endmarkCNT);
+		Custom_LCD_Printf(0, 7, "X up");
+
+		if (sw == CUSTOM_JS_U_TO_D) {
 			break;
 		} else if (sw == CUSTOM_JS_D_TO_U) {
 			break;

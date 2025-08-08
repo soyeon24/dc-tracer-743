@@ -197,6 +197,8 @@ int main(void)
 
   	HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
   	__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, 5);
+  	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+  	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
 
 	LCD_Test();
 

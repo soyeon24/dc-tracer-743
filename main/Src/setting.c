@@ -17,7 +17,7 @@
 
 #define SETTING_MENU_CNT 8
 
-menu_t settingMenu[] = { {"1. target V",Change_Target_Velocity }, {"threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+menu_t settingMenu[] = { {"3.5 best", PresetTV35}, {"threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } ,{"back", Back_To_Menu}};
 
 
@@ -63,10 +63,10 @@ void Change_curveDecel(){
 			Custom_LCD_Printf(0, 0, "%f", curveDecel);
 			sw = Custom_Switch_Read();
 			if(sw== CUSTOM_JS_D_TO_U){
-				curveRate+= 500.f;
+				curveDecel+= 500.f;
 			}
 			else if(sw ==CUSTOM_JS_U_TO_D){
-				curveRate -=1000.f;
+				curveDecel -=1000.f;
 			}
 			else if(sw == CUSTOM_JS_L_TO_R){
 				break;

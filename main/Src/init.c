@@ -38,13 +38,24 @@ void Setting() {
 //		Sensor_Calibration }, { "2. first ", Drive_First },  { "3. settings",Setting_Menu },{ "tv 1.3 ",
 //				target1_3pitin_58 }, { "tv 1.5 ",
 //						target1_5pitin_48},{ "1.7",target1_7pitin_38 },{"tv 1.8",target1_8pitin_6},
-//
-//						{ "3. settings",Setting_Menu }};
+//,
 
 
-menu_t menu[] = {{"1. cali", Sensor_Calibration},{"2. first ", Drive_First }, {"3.tv",Change_Target_Velocity},{"4. 2nd D sl",Drive_First_Pit_In_Correct }, {"5.accel",Change_accelSetting},{"6.curverate",Change_curve_rate},{"7.curvedecel", Change_curveDecel},{"setting",Setting_Menu}};
+menu_t menu[] = {{"1. cali", Sensor_Calibration},{"2. first ", Drive_First }, {"3.tv",Change_Target_Velocity},{"4. 2nd D sl",Drive_First_Pit_In_Correct }, {"5.pit in",Change_Pit_In},{"6.curverate",Change_curve_rate},{"7.curvedecel", Change_curveDecel},{"setting",Setting_Menu}};
 
+void PresetTV35(){
+	uint8_t sw = 0;
+	while(1){
+		sw = Custom_Switch_Read();
+		if(sw == CUSTOM_JS_L_TO_R){
+						break;
+					}
 
+	}
+	targetVelocitySetting = 3.5f;
+//	curveRate =0.000064f;
+
+}
 
 void Button_Test() {
 	int i = 0;

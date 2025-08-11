@@ -12,6 +12,7 @@
 #include "drive.h"
 #include "stdbool.h"
 #include "setting.h"
+#include "math.h"
 
 #include "../../MDK-ARM/Inc/custom_switch.h"
 #include "../../MDK-ARM/Inc/lptim.h"
@@ -52,7 +53,10 @@ volatile float decel;
 volatile float pitInLine = 0.1f;
 volatile float curveRate = 0.000068f;
 volatile float curveDecel = 19000.f;
-volatile uint32_t saveTick = 3000;
+
+
+float_t saveCentiMeter = 10.0f;
+#define saveTick(x) 	(uint32_t)(((x)/3.5f)*(63.f/17.f)*4096.f)
 
 //state
 volatile uint32_t sensorStateSum = 0;
@@ -61,7 +65,7 @@ volatile int indexMarkcnt = 0;
 
 volatile float currentVelocity;
 volatile float targetVelocity;
-volatile float targetVelocitySetting = 0.5f;
+volatile float targetVelocitySetting = 1.5f;
 volatile float targetVelocityPitin;
 volatile float targetVelocityPitinSetting = 2.0f;
 
@@ -325,8 +329,7 @@ void Drive_First() {
 		if (mark == MARK_END) {
 			tempMarkRead[markIndex] = mark;
 			tempMarkLength[markIndex] =
-					(MotorL.currentTick + MotorR.currentTick) / 2
-							- tempMarkRead[markIndex];
+					(MotorL.currentTick + MotorR.currentTick) / 2;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			markIndex++;
@@ -334,18 +337,16 @@ void Drive_First() {
 		} else if (mark == MARK_CROSS) {
 
 			tempMarkRead[markIndex] = mark;
-			tempMarkLength[markIndex] =
-					(MotorL.currentTick + MotorR.currentTick) / 2
-							- tempMarkRead[markIndex];
-			MotorL.currentTick = 0;
-			MotorR.currentTick = 0;
-			markIndex++;
+//			tempMarkLength[markIndex] =
+//					(MotorL.currentTick + MotorR.currentTick) / 2;
+//			MotorL.currentTick = 0;
+//			MotorR.currentTick = 0;
+//			markIndex++;
 			crossCNT++;
 		} else if (mark == MARK_RIGHT) {
 			tempMarkRead[markIndex] = mark;
 			tempMarkLength[markIndex] =
-					(MotorL.currentTick + MotorR.currentTick) / 2
-							- tempMarkRead[markIndex];
+					(MotorL.currentTick + MotorR.currentTick) / 2;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			markIndex++;
@@ -353,8 +354,7 @@ void Drive_First() {
 		} else if (mark == MARK_LEFT) {
 			tempMarkRead[markIndex] = mark;
 			tempMarkLength[markIndex] =
-					(MotorL.currentTick + MotorR.currentTick) / 2
-							- tempMarkRead[markIndex];
+					(MotorL.currentTick + MotorR.currentTick) / 2;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			markIndex++;
@@ -534,18 +534,18 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		break;
 	case STATE_ACCEL:
 		uint32_t currentTick = (MotorL.currentTick + MotorR.currentTick) / 2;
-		uint32_t decelTick = 6000
+		uint32_t decelTick = (4096)*(63/17)/(0.035*M_PI)
 				* (currentVelocity * currentVelocity
 						- targetVelocitySetting * targetVelocitySetting)
-				/ decel;
-		if (markLengthFirst[index] < 3000) {
+				/( 2*decel);
+		if (markLengthFirst[index] < saveTick(saveCentiMeter)) {
 			secondState = STATE_DECCEL;
 			break;
 		} else if (currentTick
-				> markLengthFirst[index] - decelTick - saveTick) {
+				> markLengthFirst[index] - decelTick - saveTick(saveCentiMeter)) {
 			secondState = STATE_DECCEL;
 			break;
-		} else if (currentTick > 3000) {
+		} else if (currentTick > decelTick) {
 			targetVelocity = peakVelocity;
 			break;
 		}
@@ -585,6 +585,7 @@ void Drive_Second() {
 	Sensor_Start();
 	Motor_Start();
 	Drive_Start();
+	Buzzer_Start();
 	bool secDrive = 1;
 	while (secEndmarkCNT < 2) {
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
@@ -610,10 +611,6 @@ void Drive_Second() {
 			secMarkIndex++;
 			secEndmarkCNT++;
 		} else if (mark == MARK_CROSS) {
-			tempMarkRead[secMarkIndex] = mark;
-			MotorL.currentTick = 0;
-			MotorR.currentTick = 0;
-			secMarkIndex++;
 			secCrossCNT++;
 		} else if (mark == MARK_RIGHT) {
 			tempMarkRead[secMarkIndex] = mark;
@@ -648,6 +645,7 @@ void Drive_Second() {
 	Drive_Stop();
 	Motor_Stop();
 	Sensor_Stop();
+	Buzzer_Stop();
 	Custom_LCD_Clear();
 	while (1) {
 		sw = Custom_Switch_Read();
@@ -662,10 +660,7 @@ void Drive_Second() {
 			}
 			break;
 		} else if (sw == CUSTOM_JS_D_TO_U) {
-			for (int i = 0; i < markIndex; i++) {
-				markSaveFirst[i] = tempMarkRead[i];
-				markLengthFirst[i] = returnTempMarkLength[i];
-			}
+
 			break;
 		}
 	}

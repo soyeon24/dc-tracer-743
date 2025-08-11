@@ -51,7 +51,7 @@ volatile float accelSetting = 4.5f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
 volatile float pitInLine = 0.12f;
-volatile float curveRate = 0.000068f;
+volatile float curveRate = 0.00005f;
 volatile float curveDecel = 19000.f;
 
 
@@ -635,11 +635,11 @@ void Drive_Second() {
 			secDrive = 0;
 			beforeEnd = 1;
 		}
-//		if(beforeEnd){
-//			targetVelocity = 2.5;
-//			decel = (currentVelocity*currentVelocity-targetVelocity*targetVelocity)/(2*markLengthFirst[secMarkIndex-1]);
-//
-//		}
+		if(beforeEnd){
+			targetVelocity = 2.5;
+			decel = (currentVelocity*currentVelocity-targetVelocity*targetVelocity)/(2*markLengthFirst[secMarkIndex-1]);
+
+		}
 	}
 
 	decel = (currentVelocity * currentVelocity) / (2 * pitInLine);

@@ -41,7 +41,7 @@ void Setting() {
 //,
 
 
-menu_t menu[] = {{"1. cali", Sensor_Calibration},{"2. first ", Drive_First }, {"3.tv",Change_Target_Velocity},{"4. 2nd D sl",Drive_First_Pit_In_Correct }, {"5.pit in",Change_Pit_In},{"6.curverate",Change_curve_rate},{"7.curvedecel", Change_curveDecel},{"setting",Setting_Menu}};
+menu_t menu[] = {{"1. cali", Sensor_Calibration},{"2. first ", Drive_First }, {"debug",First_Drive_Mark_Debug},{"4. 2nd D sl",Drive_First_Pit_In_Correct }, {"5.pit in",Change_Pit_In},{"6.curverate",Change_curve_rate},{"7.curvedecel", Change_curveDecel},{"setting",Setting_Menu}};
 
 void PresetTV35(){
 	uint8_t sw = 0;

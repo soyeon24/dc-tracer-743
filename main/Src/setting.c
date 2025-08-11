@@ -17,8 +17,8 @@
 
 #define SETTING_MENU_CNT 8
 
-menu_t settingMenu[] = { {"3.5 best", PresetTV35}, {"threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
-		Motor_Test_Menu } ,{"back", Back_To_Menu}};
+menu_t settingMenu[] = { {"tv setting", Change_Target_Velocity}, {"threshold", Change_Threshold},{"3. pit in",Change_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+		Motor_Test_Menu } ,{"peak v",Change_peak_v},{"back", Back_To_Menu}};
 
 
 void Change_curve_rate(){

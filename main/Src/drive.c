@@ -61,11 +61,11 @@ volatile int indexMarkcnt = 0;
 
 volatile float currentVelocity;
 volatile float targetVelocity;
-volatile float targetVelocitySetting = 2.5f;
+volatile float targetVelocitySetting = 0.5f;
 volatile float targetVelocityPitin;
 volatile float targetVelocityPitinSetting = 2.0f;
 
-volatile float peakVelocity = 2.0f;
+volatile float peakVelocity = 3.0f;
 
 //output
 uint16_t markSaveFirst[400];
@@ -237,8 +237,9 @@ __STATIC_INLINE uint8_t State_Machine() {
 	return MARK_NONE;
 }
 
+uint8_t secondState = STATE_STRAIGHT;
 __STATIC_INLINE uint8_t Pre_State(uint8_t mark) {
-	static uint8_t secondState = STATE_STRAIGHT;
+
 	switch (secondState) {
 	case STATE_STRAIGHT:
 		if (mark == MARK_LEFT) {
@@ -309,18 +310,17 @@ void Drive_First() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorState & ~(Window.center | Window.right));
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
+				sensorState & ~(Window.center | Window.right));
 		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
-		uint8_t buzzer =
-				(sensorState & ~Window.center) ?
-						__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
+		uint8_t buzzer = (sensorState & ~Window.center) ?
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 :
+															0;
 		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
 			endmarkCNT++;
 		}
-//		Custom_LCD_Printf(0, 0, "in fisrt");
-//		Custom_LCD_Printf(0, 0, "%d",MotorL.currentTick );
 		mark = State_Machine();
 		if (mark == MARK_END) {
 			tempMarkRead[markIndex] = mark;
@@ -413,7 +413,7 @@ void Drive_First_Pit_In_Correct() {
 	uint32_t markIndexPitIn = 0;
 	uint8_t mark;
 	currentVelocity = 0;
-	targetVelocityPitin=targetVelocityPitinSetting;
+	targetVelocityPitin = targetVelocityPitinSetting;
 //input
 	uint8_t sw = CUSTOM_JS_NONE;
 	accel = accelSetting;
@@ -435,18 +435,17 @@ void Drive_First_Pit_In_Correct() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, sensorState & ~(Window.center | Window.right));
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
+				sensorState & ~(Window.center | Window.right));
 		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
-		uint8_t buzzer =
-				(sensorState & ~Window.center) ?
-						__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 : 0;
+		uint8_t buzzer = (sensorState & ~Window.center) ?
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 :
+															0;
 		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
 			endmarkCNT++;
 		}
-//		Custom_LCD_Printf(0, 0, "in fisrt");
-//		Custom_LCD_Printf(0, 0, "%d",MotorL.currentTick );
 		mark = State_Machine();
 		if (mark == MARK_END) {
 
@@ -504,62 +503,21 @@ void Drive_First_Pit_In_Correct() {
 	}
 }
 
-//__STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
-//		uint32_t index) {
-//
-//	static uint8_t secondState = STATE_STRAIGHT;
-//	switch (secondState) {
-//
-//	case STATE_IDLE:
-//		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
-////		Custom_LCD_Printf(0, 4,"idle");
-//		if (currentState == STATE_STRAIGHT) {
-//			secondState = STATE_ACCEL;
-//		}
-//		break;
-//
-//	case STATE_ACCEL:
-//		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 0);
-////		Custom_LCD_Printf(0, 4,"accel");
-//
-//		uint32_t currentTick = (MotorL.currentTick + MotorR.currentTick) / 2;
-//		uint32_t decelTick =
-//				(uint32_t) (18000
-//						* (currentVelocity * currentVelocity
-//								- targetVelocitySetting * targetVelocitySetting)
-//						/ decel);
-//		if (markLengthFirst[secIndexmark] < safeDistance) {
-//			secondState = STATE_DECCEL;
-//		} else if (markLengthFirst[index] - currentTick
-//				< safeDistance + decelTick) {
-//			secondState = STATE_DECCEL;
-//		} else if (currentTick > safeDistance) {
-//			targetVelocity = peakVelocity;
-//		}
-//
-//		break;
-//	case STATE_DECCEL:
-//
-//		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
-////		Custom_LCD_Printf(0, 4,"decel");
-//		targetVelocity = targetVelocitySetting;
-//		secondState = STATE_IDLE;
-//		break;
-//	}
-//}
 void First_Drive_Mark_Debug() {
 	uint8_t sw = CUSTOM_JS_NONE;
 	uint32_t i = 0;
 
 	while (1) {
 		sw = Custom_Switch_Read();
-		if (sw == CUSTOM_JS_L_TO_R) {
+		if (sw == CUSTOM_JS_D_TO_U) {
 			i++;
 			Custom_LCD_Printf(0, 0, "%d", markSaveFirst[i]);
+			Custom_LCD_Printf(0, 1, "%d", markLengthFirst[i]);
 		} else if (sw == CUSTOM_JS_R_TO_L) {
 			i--;
 			Custom_LCD_Printf(0, 0, "%d", markSaveFirst[i]);
-		} else if (sw == CUSTOM_JS_U_TO_D) {
+		} else if (sw == CUSTOM_JS_R_TO_L) {
+			Custom_LCD_Clear();
 			break;
 		}
 	}
@@ -578,11 +536,13 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		uint32_t currentTick = (MotorL.currentTick + MotorR.currentTick) / 2;
 		uint32_t decelTick = 6000
 				* (currentVelocity * currentVelocity
-						- targetVelocitySetting * targetVelocitySetting) / decel;
+						- targetVelocitySetting * targetVelocitySetting)
+				/ decel;
 		if (markLengthFirst[index] < 3000) {
 			secondState = STATE_DECCEL;
 			break;
-		} else if (currentTick > markLength[index] - decelTick - saveTick) {
+		} else if (currentTick
+				> markLengthFirst[index] - decelTick - saveTick) {
 			secondState = STATE_DECCEL;
 			break;
 		} else if (currentTick > 3000) {
@@ -596,26 +556,6 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 	}
 }
 
-//void Drive_Second() {
-//	uint32_t tempMarkRead[400];
-//	endmarkCNT= 0;
-//	cv = 0.05f;
-//	motorTickL = 0;
-//	motorTickR = 0;
-//	tv = tv_setting;
-//	pv = pv_setting;
-//	Sensor_Start();
-//	Motor_Start();
-//	HAL_DeInit(100);
-//	Drive_Start();
-//
-//	bool sec_drive=1;
-//	while(endmarkCNT<2){
-////		if(accel< accelSetting)
-//	}
-
-//}
-//
 void Drive_Second() {
 	//output
 
@@ -630,10 +570,10 @@ void Drive_Second() {
 	uint8_t secMarkRightCNT = 0;
 	uint8_t sw = 0;
 	uint32_t secMarkIndex = 0;
-	for (int i = 0; i < markIndex; i++) {
-		returnTempMarkLength[i] = markLengthFirst[i];
-		returnSaveFirst[i] = markLengthFirst[i];
-	}
+//	for (int i = 0; i < markIndex; i++) {
+//		returnTempMarkLength[i] = markLengthFirst[i];
+//		returnSaveFirst[i] = markLengthFirst[i];
+//	}
 
 	uint8_t mark;
 	currentVelocity = 0;
@@ -647,6 +587,12 @@ void Drive_Second() {
 	Drive_Start();
 	bool secDrive = 1;
 	while (secEndmarkCNT < 2) {
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
+				sensorState & ~(Window.center | Window.right));
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
+		uint8_t buzzer = (sensorState & ~Window.center) ?
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 :	0;
+		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		mark = State_Machine();
 
@@ -764,35 +710,6 @@ void Mark_Debug() {
 
 	}
 }
-
-//	void Mark_Length_Debug() {
-//		uint32_t index_mark_track = 0;
-//		uint32_t sw = CUSTOM_JS_NONE;
-//		while (1) {
-//			Custom_LCD_Printf(0, 0, "mark leng");
-//			while (1) {
-//				sw = Custom_Switch_Read();
-//				if (sw == CUSTOM_JS_U_TO_D) {
-//					index_mark_track++;
-//				} else if (sw == CUSTOM_JS_D_TO_U) {
-//					index_mark_track--;
-//				} else if (sw == CUSTOM_JS_L_TO_R) {
-//					Custom_LCD_Clear();
-//					break;
-//				}
-//				if (markSaveFirst[index_mark_track] == MARK_END) {
-//					Custom_LCD_Printf(1, 0, "end     ");
-//				} else if (markSaveFirst[index_mark_track] == MARK_LEFT) {
-//					Custom_LCD_Printf(1, 0, "left    ");
-//				} else if (markSaveFirst[index_mark_track] == MARK_RIGHT) {
-//					Custom_LCD_Printf(1, 0, "right   ");
-//				}
-//				else if (markSaveFirst[index_mark_track] == MARK_CROSS) {
-//					Custom_LCD_Printf(1, 0, "cross   ");
-//			}
-//		}
-//
-//	}
 
 void Drive_Test_Without_Motor() {
 	accel = accelSetting;

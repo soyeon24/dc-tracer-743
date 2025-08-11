@@ -31,12 +31,17 @@ void Sensor_Stop();
 extern int32_t positionValue;
 extern uint32_t sensorThreshold;
 
+extern uint32_t MARK_STATE_LEFT[16];
+extern uint32_t MARK_STATE_RIGHT[16];
+extern uint32_t MARK_STATE_CENTER[16];
+extern int windowStart;
 
+extern int window;
 
 typedef struct{
-	uint16_t left;
-	uint16_t center;
-	uint16_t right;
+	uint32_t left;
+	uint32_t center;
+	uint32_t right;
 }window_t;
 
 

@@ -312,14 +312,18 @@ void Drive_First() {
 
 	HAL_Delay(10);
 	Buzzer_Start();
-	Motor_Start();
+	//Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
-				sensorState & ~(Window.center | Window.right));
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
+		Custom_LCD_Printf(0, 0,"%04X", Window.left);
+		Custom_LCD_Printf(0, 1,"%04X", Window.center);
+		Custom_LCD_Printf(0, 2,"%04x", Window.right);
+		Custom_LCD_Printf(0, 3, "%2d",window);
+		Custom_LCD_Printf(0, 4,"%04x", sensorState);
+		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin,	(sensorState & Window.center));
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (sensorState & Window.right));
 		uint8_t buzzer = (sensorState & ~Window.center) ?
-		__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 :
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
 															0;
 		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 

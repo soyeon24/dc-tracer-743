@@ -15,6 +15,8 @@
 #include "../../MDK-ARM/Inc/lptim.h"
 #include "../../MDK-ARM/Inc/main.h"
 #include "../../MDK-ARM/Inc/tim.h"
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 int32_t positionValue = 0;
 int32_t weightedSum = 0;
@@ -35,6 +37,21 @@ int32_t sensorPosition[16] = {
 		-30000, -26000, -22000, -18000, -14000, -10000, -6000, -2000,
 		//
 		2000, 6000, 10000, 14000, 18000, 22000, 26000, 30000 };
+
+uint32_t MARK_STATE_LEFT[16] = { 0x0000, 0x0000, 0x0000, 0x8000, 0xC000, 0xE000,
+		0xF000, 0xF800, 0xFC00, 0xFE00, 0xFF00, 0xFF80, 0xFFC0, 0xFFE0, 0xFFF0,
+		0xFFF0 //
+		};
+
+uint32_t MARK_STATE_RIGHT[16] = { 0x0FFF, 0x07FF, 0x03FF, 0x01FF, 0x00FF,
+		0x007F, 0x003F, 0x001F, 0x000F, 0x0007, 0x0003, 0x0001, 0x0000, 0x0000,
+		0x0000, 0x0000 //
+		};
+
+uint32_t MARK_STATE_CENTER[16] = { 0xF000, 0xF100, 0xFC00, 0x7E00, 0x3F00,
+		0x1F80, 0x0FC0, 0x07E0, 0x03F0, 0x01F8, 0x00FC, 0x007E, 0x003F, 0x001F,
+		0x000F, 0x000F //
+		};
 
 menu_t sensor_menu[] = { { "1.S Raw", Sensor_Test_Raw }, { "2.S Norm",
 		Sensor_Normalized }, { "3.S state", Sensor_State }, { "4.S posit",
@@ -68,10 +85,12 @@ __STATIC_INLINE uint32_t Battery_ADC_Read() {
 
 uint32_t adc = 0;
 
+
+int window;
 void Battery_LPTIM3_IRQ() {
 	//Custom_LCD_Printf(0, 4, "tim3");
 	adc = Battery_ADC_Read();
-	batteryVolt = ((float)adc) * 0.000849f-0.866f;
+	batteryVolt = ((float) adc) * 0.000849f - 0.866f;
 	//Custom_LCD_Printf(0, 0, "%f", batteryVolt);
 }
 
@@ -109,22 +128,16 @@ void Battery_Start() {
 }
 void Battery_Stop() {
 
-
 	HAL_LPTIM_Counter_Stop_IT(&hlptim3);
 }
 void Sensor_Start() {
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_Delay(10);
 }
-
 void Sensor_Stop() {
 	HAL_TIM_Base_Stop_IT(&htim6);
 	HAL_Delay(10);
 }
-
-
-
-
 void Sensor_Menu_Print(uint32_t index) {
 	for (uint32_t i = 0; i < SENSOR_MENU_CNT; i++) {
 		Set_Color(index, i);
@@ -132,7 +145,6 @@ void Sensor_Menu_Print(uint32_t index) {
 
 	}
 }
-
 void Sensor_Test_Menu() {
 	uint32_t numOfSensorMenu = sizeof(sensor_menu) / sizeof(menu_t);
 	uint32_t selected_index = 0;
@@ -162,7 +174,8 @@ void Sensor_Test_Menu() {
 		}
 	}
 }
-
+int windowStart;
+int windowSizeHalf = 3;
 void TIM6_Sensor_IRQ() {
 	static uint8_t i = 0;
 	uint32_t rawValue1;
@@ -207,50 +220,69 @@ void TIM6_Sensor_IRQ() {
 	}
 	sensorState = (sensorState & ~(0x01 << (15 - i)))
 			| ((sensorNormalized[i] > sensorThreshold) << (15 - i));
-	if (!(i % 15)) {
-		weightedSum = 0;
-		weightedNormalized = 0;
-//
-		float windowStart = positionValue / 4000 + 4.5;
-		float windowEnd = positionValue / 4000 + 10.5;
-		uint8_t currentWindowStartIndex = 17;
-		uint8_t currentWindowEndIndex = 0;
-		for (int sensorIndex = 0; sensorIndex < 16; sensorIndex++) {
-			if (sensorIndex < windowStart) {
-				continue;
-			}
-			if (sensorIndex > windowEnd) {
-				continue;
-			}
-			if (sensorIndex < currentWindowStartIndex) {
-				currentWindowStartIndex = sensorIndex;
-			}
-			if (sensorIndex > currentWindowEndIndex) {
-				currentWindowEndIndex = sensorIndex;
-			}
-			weightedSum += sensorPosition[sensorIndex]
-					* ((int32_t) sensorNormalized[sensorIndex]);
-			weightedNormalized += sensorNormalized[sensorIndex];
 
-		}
-		if (!weightedNormalized) {
-			positionValue = 0;
-		} else {
-			positionValue = weightedSum / weightedNormalized;
-		}
+	window = (positionValue + 30000) / 4000;
 
-		windowStartIndex = currentWindowStartIndex;
-		windowEndIndex = currentWindowEndIndex;
-
-		Window.center = 0;
-		Window.left = 0;
-		Window.right = 0;
-		for (int j = windowStartIndex; j <= windowEndIndex; j++) {
-			Window.center |= (1 << (15 - j));
-		}
-		Window.left = ((uint16_t) (0xffff)) << (16 - windowStartIndex);
-		Window.right = ((uint16_t) (0xffff)) >> (windowEndIndex + 1);
+	weightedSum = 0;
+	weightedNormalized = 0;
+	windowStart = MAX(window - windowSizeHalf + 1, 0);
+	int windowEnd = MIN(window + windowSizeHalf, 15);
+	for (int i = windowStart; i <= windowEnd; i++) {
+		weightedNormalized += sensorNormalized[i] * sensorPosition[i];
+		weightedSum += sensorNormalized[i];
 	}
+	if (!weightedSum) {
+		positionValue = 0;
+	} else {
+		positionValue = weightedNormalized / weightedSum;
+	}
+	Window.center = MARK_STATE_CENTER[window];
+	Window.left = MARK_STATE_LEFT[window];
+	Window.right = MARK_STATE_RIGHT[window];
+//	if (!(i % 15)) {
+//		weightedSum = 0;
+//		weightedNormalized = 0;
+//
+//		float windowStart = positionValue / 4000 + 4.5;
+//		float windowEnd = positionValue / 4000 + 10.5;
+//		uint8_t currentWindowStartIndex = 17;
+//		uint8_t currentWindowEndIndex = 0;
+//		for (int sensorIndex = 0; sensorIndex < 16; sensorIndex++) {
+//			if (sensorIndex < windowStart) {
+//				continue;
+//			}
+//			if (sensorIndex > windowEnd) {
+//				continue;
+//			}
+//			if (sensorIndex < currentWindowStartIndex) {
+//				currentWindowStartIndex = sensorIndex;
+//			}
+//			if (sensorIndex > currentWindowEndIndex) {
+//				currentWindowEndIndex = sensorIndex;
+//			}
+//			weightedSum += sensorPosition[sensorIndex]
+//					* ((int32_t) sensorNormalized[sensorIndex]);
+//			weightedNormalized += sensorNormalized[sensorIndex];
+//
+//		}
+//		if (!weightedNormalized) {
+//			positionValue = 0;
+//		} else {
+//			positionValue = weightedSum / weightedNormalized;
+//		}
+//
+//		windowStartIndex = currentWindowStartIndex;
+//		windowEndIndex = currentWindowEndIndex;
+//
+//		Window.center = 0;
+//		Window.left = 0;
+//		Window.right = 0;
+//		for (int j = windowStartIndex; j <= windowEndIndex; j++) {
+//			Window.center |= (1 << (15 - j));
+//		}
+//		Window.left = ((uint16_t) (0xffff)) << (16 - windowStartIndex);
+//		Window.right = ((uint16_t) (0xffff)) >> (windowEndIndex + 1);
+//	}
 
 	i = (i + 1) & 0x0f;
 }
@@ -471,6 +503,9 @@ void Sensor_State() {
 
 		char upper[9] = { 0 };
 		char lower[9] = { 0 };
+
+		char upper2[9] = { 0 };
+		char lower2[9] = { 0 };
 		for (int i = 0; i < 8; i++) {
 			upper[i] = ((sensorState >> (15 - i)) & 1) ? '1' : '0';
 			lower[i] = ((sensorState >> (7 - i)) & 1) ? '1' : '0';
@@ -480,7 +515,16 @@ void Sensor_State() {
 		Custom_LCD_Printf(0, 1, upper);
 
 		Custom_LCD_Printf(0, 2, lower);
-		Custom_LCD_Printf(0, 3, "%d", positionValue);
+
+		for (int i = 0; i < 8; i++) {
+			upper2[i] = ((Window.left >> (15 - i)) & 1) ? '1' : '0';
+			lower2[i] = ((Window.left >> (7 - i)) & 1) ? '1' : '0';
+		}
+
+		Custom_LCD_Printf(0, 3, upper2);
+
+		Custom_LCD_Printf(0, 4, lower2);
+
 	}
 	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET) {
 	}

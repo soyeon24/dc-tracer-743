@@ -38,6 +38,7 @@ extern volatile float curveDecel;
 extern volatile float curveRate;
 extern volatile float peakVelocity;
 extern volatile float targetVelocityPitinSetting;
+extern float_t saveCentiMeter;
 
 #endif /* MAIN_INC_DRIVE_H_ */
 

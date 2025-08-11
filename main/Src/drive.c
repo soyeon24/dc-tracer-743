@@ -50,12 +50,12 @@ volatile float accel;
 volatile float accelSetting = 4.5f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
-volatile float pitInLine = 0.1f;
+volatile float pitInLine = 0.12f;
 volatile float curveRate = 0.000068f;
 volatile float curveDecel = 19000.f;
 
 
-float_t saveCentiMeter = 10.0f;
+float_t saveCentiMeter = 5.0f;
 #define saveTick(x) 	(uint32_t)(((x)/3.5f)*(63.f/17.f)*4096.f)
 
 //state
@@ -70,6 +70,7 @@ volatile float targetVelocityPitin;
 volatile float targetVelocityPitinSetting = 2.0f;
 
 volatile float peakVelocity = 3.0f;
+float_t pitInCentimeter = 5.0f;
 
 //output
 uint16_t markSaveFirst[400];
@@ -581,6 +582,7 @@ void Drive_Second() {
 	accel = accelSetting;
 	targetVelocity = peakVelocity;
 	decel = decelSetting;
+	bool beforeEnd=0;
 
 	Sensor_Start();
 	Motor_Start();
@@ -629,9 +631,14 @@ void Drive_Second() {
 			break;
 
 		}
-//		if(markSaveFirst[secMarkIndex-1]==MARK_END){
-//			secDrive = 0;
+		if(markSaveFirst[secMarkIndex-1]==MARK_END){
+			secDrive = 0;
+			beforeEnd = 1;
+		}
+//		if(beforeEnd){
 //			targetVelocity = 2.5;
+//			decel = (currentVelocity*currentVelocity-targetVelocity*targetVelocity)/(2*markLengthFirst[secMarkIndex-1]);
+//
 //		}
 	}
 

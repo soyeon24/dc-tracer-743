@@ -54,7 +54,6 @@ volatile float pitInLine = 0.12f;
 volatile float curveRate = 0.00005f;
 volatile float curveDecel = 19000.f;
 
-
 float_t saveCentiMeter = 5.0f;
 #define saveTick(x) 	(uint32_t)(((x)/3.5f)*(63.f/17.f)*4096.f)
 
@@ -190,22 +189,22 @@ __STATIC_INLINE uint32_t Position_Center(int32_t position, uint16_t state) {
 }
 
 bool isLeftDetected = 0;
-		bool isRightDetected = 0;
-		bool isSensorStateFull =0;
-		bool isMarkerDetected=0;
+bool isRightDetected = 0;
+bool isSensorStateFull = 0;
+bool isMarkerDetected = 0;
 __STATIC_INLINE uint8_t State_Machine() {
 	uint16_t windowMask = 0;
 	for (int j = windowStartIndex; j <= windowEndIndex; j++) {
 		windowMask |= (1 << (15 - j));
 	}
 	uint16_t markerMask = ~windowMask;
-	isMarkerDetected= sensorState & markerMask;
+	isMarkerDetected = sensorState & markerMask;
 
 	switch (state) {
 	case STATE_IDLE:
-		isRightDetected=0;
-		isLeftDetected=0;
-		isSensorStateFull=0;
+		isRightDetected = 0;
+		isLeftDetected = 0;
+		isSensorStateFull = 0;
 		if (__builtin_popcount(sensorState & windowMask) > 4
 				|| isMarkerDetected) {
 			sensorStateSum = Position_Center(positionValue, sensorState);
@@ -215,7 +214,7 @@ __STATIC_INLINE uint8_t State_Machine() {
 
 	case STATE_MARK:
 		isLeftDetected = sensorStateSum & MASKLEFT;
-				isRightDetected = sensorStateSum & MASKRIGHT;
+		isRightDetected = sensorStateSum & MASKRIGHT;
 		if (!isMarkerDetected) {
 			state = STATE_DECISION;
 			break;
@@ -229,7 +228,7 @@ __STATIC_INLINE uint8_t State_Machine() {
 
 		isLeftDetected = sensorStateSum & MASKLEFT;
 		isRightDetected = sensorStateSum & MASKRIGHT;
-	    isSensorStateFull = (sensorStateSum & 0x00FFFF00) == 0x00FFFF00;
+		isSensorStateFull = (sensorStateSum & 0x00FFFF00) == 0x00FFFF00;
 
 		if (isSensorStateFull) {
 
@@ -326,13 +325,13 @@ void Drive_First() {
 	Drive_Start();
 	while (endmarkCNT < 2) {
 
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	isLeftDetected );
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isLeftDetected);
 		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
 
 		uint8_t buzzer = (isMarkerDetected) ?
-				__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
-																	0;
-				__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20 :
+												0;
+		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
 			endmarkCNT++;
@@ -384,8 +383,8 @@ void Drive_First() {
 	while (currentVelocity > 0.01) {
 	}
 	currentVelocity = 0;
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	0 );
-			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 	HAL_Delay(500);
 	Drive_Stop();
 	Motor_Stop();
@@ -448,14 +447,13 @@ void Drive_First_Pit_In_Correct() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	isLeftDetected );
-			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isLeftDetected);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
 
-			uint8_t buzzer = (isMarkerDetected) ?
-					__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
-																		0;
-					__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
-
+		uint8_t buzzer = (isMarkerDetected) ?
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20 :
+												0;
+		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
 			endmarkCNT++;
@@ -493,8 +491,8 @@ void Drive_First_Pit_In_Correct() {
 	while (currentVelocity > 0.01) {
 	}
 	currentVelocity = 0;
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	0 );
-				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 	HAL_Delay(500);
 	Drive_Stop();
 	Motor_Stop();
@@ -549,10 +547,10 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		break;
 	case STATE_ACCEL:
 		uint32_t currentTick = (MotorL.currentTick + MotorR.currentTick) / 2;
-		uint32_t decelTick = (4096)*(63/17)/(0.035*M_PI)
+		uint32_t decelTick = (4096) * (63 / 17) / (0.035 * M_PI)
 				* (currentVelocity * currentVelocity
 						- targetVelocitySetting * targetVelocitySetting)
-				/( 2*decel);
+				/ (2 * decel);
 		if (markLengthFirst[index] < saveTick(saveCentiMeter)) {
 			secondState = STATE_DECCEL;
 			break;
@@ -596,7 +594,7 @@ void Drive_Second() {
 	accel = accelSetting;
 	targetVelocity = peakVelocity;
 	decel = decelSetting;
-	bool beforeEnd=0;
+	bool beforeEnd = 0;
 
 	Sensor_Start();
 	Motor_Start();
@@ -604,14 +602,13 @@ void Drive_Second() {
 	Buzzer_Start();
 	bool secDrive = 1;
 	while (secEndmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	isLeftDetected );
-			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isLeftDetected);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
 
-			uint8_t buzzer = (isMarkerDetected) ?
-					__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
-																		0;
-					__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
-
+		uint8_t buzzer = (isMarkerDetected) ?
+		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20 :
+												0;
+		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		mark = State_Machine();
 
@@ -647,15 +644,17 @@ void Drive_Second() {
 			break;
 
 		}
-		if(markSaveFirst[secMarkIndex-1]==MARK_END){
-			secDrive = 0;
-			beforeEnd = 1;
-		}
-		if(beforeEnd){
-			targetVelocity = 2.5;
-			decel = (currentVelocity*currentVelocity-targetVelocity*targetVelocity)/(2*markLengthFirst[secMarkIndex-1]);
-
-		}
+//		if (markSaveFirst[secMarkIndex - 1] == MARK_END) {
+//			secDrive = 0;
+////			beforeEnd = 1;
+//		}
+//		if (beforeEnd) {
+//			targetVelocity = 2.5;
+//			decel = (currentVelocity * currentVelocity
+//					- targetVelocity * targetVelocity)
+//					/ (2 * markLengthFirst[secMarkIndex - 1]);
+//
+//		}
 	}
 
 	decel = (currentVelocity * currentVelocity) / (2 * pitInLine);
@@ -663,8 +662,8 @@ void Drive_Second() {
 
 	while (currentVelocity > 0.01) {
 	}
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	0 );
-				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
 	HAL_Delay(100);
 	Drive_Stop();

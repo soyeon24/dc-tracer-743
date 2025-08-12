@@ -644,17 +644,17 @@ void Drive_Second() {
 			break;
 
 		}
-//		if (markSaveFirst[secMarkIndex - 1] == MARK_END) {
-//			secDrive = 0;
-////			beforeEnd = 1;
-//		}
-//		if (beforeEnd) {
-//			targetVelocity = 2.5;
-//			decel = (currentVelocity * currentVelocity
-//					- targetVelocity * targetVelocity)
-//					/ (2 * markLengthFirst[secMarkIndex - 1]);
-//
-//		}
+		if (markSaveFirst[secMarkIndex+1] == MARK_END) {
+			secDrive = 0;
+			beforeEnd = 1;
+		}
+		if (beforeEnd) {
+			targetVelocity = 2.5;
+			decel = (currentVelocity * currentVelocity
+					- targetVelocity * targetVelocity)
+					/ (2 * markLengthFirst[secMarkIndex - 1]);
+
+		}
 	}
 
 	decel = (currentVelocity * currentVelocity) / (2 * pitInLine);

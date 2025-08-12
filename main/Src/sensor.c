@@ -221,59 +221,59 @@ void TIM6_Sensor_IRQ() {
 	sensorState = (sensorState & ~(0x01 << (15 - i)))
 			| ((sensorNormalized[i] > sensorThreshold) << (15 - i));
 
-	window = (positionValue + 30000) / 4000;
+//	window = (positionValue + 30000) / 4000;
+//
+//	weightedSum = 0;
+//	weightedNormalized = 0;
+//	windowStart = MAX(window - windowSizeHalf + 1, 0);
+//	int windowEnd = MIN(window + windowSizeHalf, 15);
+//	for (int i = windowStart; i <= windowEnd; i++) {
+//		weightedNormalized += sensorNormalized[i] * sensorPosition[i];
+//		weightedSum += sensorNormalized[i];
+//	}
+//	if (!weightedSum) {
+//		positionValue = 0;
+//	} else {
+//		positionValue = weightedNormalized / weightedSum;
+//	}
+//	Window.center = MARK_STATE_CENTER[window];
+//	Window.left = MARK_STATE_LEFT[window];
+//	Window.right = MARK_STATE_RIGHT[window];
+	if (!(i % 15)) {
+		weightedSum = 0;
+		weightedNormalized = 0;
 
-	weightedSum = 0;
-	weightedNormalized = 0;
-	windowStart = MAX(window - windowSizeHalf + 1, 0);
-	int windowEnd = MIN(window + windowSizeHalf, 15);
-	for (int i = windowStart; i <= windowEnd; i++) {
-		weightedNormalized += sensorNormalized[i] * sensorPosition[i];
-		weightedSum += sensorNormalized[i];
-	}
-	if (!weightedSum) {
-		positionValue = 0;
-	} else {
-		positionValue = weightedNormalized / weightedSum;
-	}
-	Window.center = MARK_STATE_CENTER[window];
-	Window.left = MARK_STATE_LEFT[window];
-	Window.right = MARK_STATE_RIGHT[window];
-//	if (!(i % 15)) {
-//		weightedSum = 0;
-//		weightedNormalized = 0;
-//
-//		float windowStart = positionValue / 4000 + 4.5;
-//		float windowEnd = positionValue / 4000 + 10.5;
-//		uint8_t currentWindowStartIndex = 17;
-//		uint8_t currentWindowEndIndex = 0;
-//		for (int sensorIndex = 0; sensorIndex < 16; sensorIndex++) {
-//			if (sensorIndex < windowStart) {
-//				continue;
-//			}
-//			if (sensorIndex > windowEnd) {
-//				continue;
-//			}
-//			if (sensorIndex < currentWindowStartIndex) {
-//				currentWindowStartIndex = sensorIndex;
-//			}
-//			if (sensorIndex > currentWindowEndIndex) {
-//				currentWindowEndIndex = sensorIndex;
-//			}
-//			weightedSum += sensorPosition[sensorIndex]
-//					* ((int32_t) sensorNormalized[sensorIndex]);
-//			weightedNormalized += sensorNormalized[sensorIndex];
-//
-//		}
-//		if (!weightedNormalized) {
-//			positionValue = 0;
-//		} else {
-//			positionValue = weightedSum / weightedNormalized;
-//		}
-//
-//		windowStartIndex = currentWindowStartIndex;
-//		windowEndIndex = currentWindowEndIndex;
-//
+		float windowStart = positionValue / 4000 + 4.5;
+		float windowEnd = positionValue / 4000 + 10.5;
+		uint8_t currentWindowStartIndex = 17;
+		uint8_t currentWindowEndIndex = 0;
+		for (int sensorIndex = 0; sensorIndex < 16; sensorIndex++) {
+			if (sensorIndex < windowStart) {
+				continue;
+			}
+			if (sensorIndex > windowEnd) {
+				continue;
+			}
+			if (sensorIndex < currentWindowStartIndex) {
+				currentWindowStartIndex = sensorIndex;
+			}
+			if (sensorIndex > currentWindowEndIndex) {
+				currentWindowEndIndex = sensorIndex;
+			}
+			weightedSum += sensorPosition[sensorIndex]
+					* ((int32_t) sensorNormalized[sensorIndex]);
+			weightedNormalized += sensorNormalized[sensorIndex];
+
+		}
+		if (!weightedNormalized) {
+			positionValue = 0;
+		} else {
+			positionValue = weightedSum / weightedNormalized;
+		}
+
+		windowStartIndex = currentWindowStartIndex;
+		windowEndIndex = currentWindowEndIndex;
+
 //		Window.center = 0;
 //		Window.left = 0;
 //		Window.right = 0;
@@ -282,7 +282,7 @@ void TIM6_Sensor_IRQ() {
 //		}
 //		Window.left = ((uint16_t) (0xffff)) << (16 - windowStartIndex);
 //		Window.right = ((uint16_t) (0xffff)) >> (windowEndIndex + 1);
-//	}
+	}
 
 	i = (i + 1) & 0x0f;
 }

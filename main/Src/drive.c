@@ -189,16 +189,23 @@ __STATIC_INLINE uint32_t Position_Center(int32_t position, uint16_t state) {
 	return center_sorted_state;
 }
 
+bool isLeftDetected = 0;
+		bool isRightDetected = 0;
+		bool isSensorStateFull =0;
+		bool isMarkerDetected=0;
 __STATIC_INLINE uint8_t State_Machine() {
 	uint16_t windowMask = 0;
 	for (int j = windowStartIndex; j <= windowEndIndex; j++) {
 		windowMask |= (1 << (15 - j));
 	}
 	uint16_t markerMask = ~windowMask;
-	bool isMarkerDetected = sensorState & markerMask;
+	isMarkerDetected= sensorState & markerMask;
 
 	switch (state) {
 	case STATE_IDLE:
+		isRightDetected=0;
+		isLeftDetected=0;
+		isSensorStateFull=0;
 		if (__builtin_popcount(sensorState & windowMask) > 4
 				|| isMarkerDetected) {
 			sensorStateSum = Position_Center(positionValue, sensorState);
@@ -207,6 +214,8 @@ __STATIC_INLINE uint8_t State_Machine() {
 		break;
 
 	case STATE_MARK:
+		isLeftDetected = sensorStateSum & MASKLEFT;
+				isRightDetected = sensorStateSum & MASKRIGHT;
 		if (!isMarkerDetected) {
 			state = STATE_DECISION;
 			break;
@@ -218,9 +227,9 @@ __STATIC_INLINE uint8_t State_Machine() {
 	case STATE_DECISION:
 		state = STATE_IDLE;
 
-		bool isLeftDetected = sensorStateSum & MASKLEFT;
-		bool isRightDetected = sensorStateSum & MASKRIGHT;
-		bool isSensorStateFull = (sensorStateSum & 0x007FFF00) == 0x007FFF00;
+		isLeftDetected = sensorStateSum & MASKLEFT;
+		isRightDetected = sensorStateSum & MASKRIGHT;
+	    isSensorStateFull = (sensorStateSum & 0x00FFFF00) == 0x00FFFF00;
 
 		if (isSensorStateFull) {
 
@@ -232,6 +241,7 @@ __STATIC_INLINE uint8_t State_Machine() {
 		}
 
 		if (isLeftDetected) {
+
 			return MARK_LEFT;
 		}
 
@@ -312,20 +322,17 @@ void Drive_First() {
 
 	HAL_Delay(10);
 	Buzzer_Start();
-	//Motor_Start();
+	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		Custom_LCD_Printf(0, 0,"%04X", Window.left);
-		Custom_LCD_Printf(0, 1,"%04X", Window.center);
-		Custom_LCD_Printf(0, 2,"%04x", Window.right);
-		Custom_LCD_Printf(0, 3, "%2d",window);
-		Custom_LCD_Printf(0, 4,"%04x", sensorState);
-		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin,	(sensorState & Window.center));
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (sensorState & Window.right));
-		uint8_t buzzer = (sensorState & ~Window.center) ?
-		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
-															0;
-		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	isLeftDetected );
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+
+		uint8_t buzzer = (isMarkerDetected) ?
+				__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
+																	0;
+				__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
 			endmarkCNT++;
@@ -377,7 +384,8 @@ void Drive_First() {
 	while (currentVelocity > 0.01) {
 	}
 	currentVelocity = 0;
-
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	0 );
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 	HAL_Delay(500);
 	Drive_Stop();
 	Motor_Stop();
@@ -440,13 +448,14 @@ void Drive_First_Pit_In_Correct() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
-				sensorState & ~(Window.center | Window.right));
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
-		uint8_t buzzer = (sensorState & ~Window.center) ?
-		__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 :
-															0;
-		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	isLeftDetected );
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+
+			uint8_t buzzer = (isMarkerDetected) ?
+					__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
+																		0;
+					__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
 			endmarkCNT++;
@@ -484,7 +493,8 @@ void Drive_First_Pit_In_Correct() {
 	while (currentVelocity > 0.01) {
 	}
 	currentVelocity = 0;
-
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	0 );
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 	HAL_Delay(500);
 	Drive_Stop();
 	Motor_Stop();
@@ -594,12 +604,14 @@ void Drive_Second() {
 	Buzzer_Start();
 	bool secDrive = 1;
 	while (secEndmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,
-				sensorState & ~(Window.center | Window.right));
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, sensorState & Window.right);
-		uint8_t buzzer = (sensorState & ~Window.center) ?
-		__HAL_TIM_GET_AUTORELOAD(&htim15) / 2 :	0;
-		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	isLeftDetected );
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+
+			uint8_t buzzer = (isMarkerDetected) ?
+					__HAL_TIM_GET_AUTORELOAD(&htim15) / 20:
+																		0;
+					__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
+
 
 		mark = State_Machine();
 
@@ -651,6 +663,8 @@ void Drive_Second() {
 
 	while (currentVelocity > 0.01) {
 	}
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,	0 );
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
 	HAL_Delay(100);
 	Drive_Stop();

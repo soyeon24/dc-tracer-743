@@ -39,9 +39,9 @@ extern int windowStart;
 extern int window;
 
 typedef struct{
-	uint32_t left;
-	uint32_t center;
-	uint32_t right;
+	uint16_t left;
+	uint16_t center;
+	uint16_t right;
 }window_t;
 
 

@@ -13,7 +13,7 @@
 
 void Motor_Test_Menu(void);
 void Motor_LPTIM4_IRQ();
-
+void MotorL_P_Gain_with_speed();
 typedef struct {
 	volatile uint16_t CurrEncVal; //현재 엔코더
 	volatile uint16_t PastEncVal; //이전 엔코더

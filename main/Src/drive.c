@@ -47,10 +47,10 @@ int32_t positionCenter[15] = { -28000, -24000, -20000, -16000, -12000, -8000,
 		-4000, 0, 4000, 8000, 12000, 16000, 20000, 24000, 28000 };
 
 volatile float accel;
-volatile float accelSetting = 4.5f;
+volatile float accelSetting = 7.0f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
-volatile float pitInLine = 0.12f;
+volatile float pitInLine = 0.09f;
 volatile float curveRate = 0.00005f;
 volatile float curveDecel = 19000.f;
 
@@ -188,10 +188,11 @@ __STATIC_INLINE uint32_t Position_Center(int32_t position, uint16_t state) {
 	return center_sorted_state;
 }
 
-bool isLeftDetected = 0;
-bool isRightDetected = 0;
-bool isSensorStateFull = 0;
+
 bool isMarkerDetected = 0;
+
+bool isleftLed = 0;
+bool isRightLed = 0;
 __STATIC_INLINE uint8_t State_Machine() {
 	uint16_t windowMask = 0;
 	for (int j = windowStartIndex; j <= windowEndIndex; j++) {
@@ -202,9 +203,6 @@ __STATIC_INLINE uint8_t State_Machine() {
 
 	switch (state) {
 	case STATE_IDLE:
-		isRightDetected = 0;
-		isLeftDetected = 0;
-		isSensorStateFull = 0;
 		if (__builtin_popcount(sensorState & windowMask) > 4
 				|| isMarkerDetected) {
 			sensorStateSum = Position_Center(positionValue, sensorState);
@@ -213,8 +211,9 @@ __STATIC_INLINE uint8_t State_Machine() {
 		break;
 
 	case STATE_MARK:
-		isLeftDetected = sensorStateSum & MASKLEFT;
-		isRightDetected = sensorStateSum & MASKRIGHT;
+		isleftLed = sensorStateSum & MASKLEFT;
+		isRightLed=sensorStateSum & MASKRIGHT;
+
 		if (!isMarkerDetected) {
 			state = STATE_DECISION;
 			break;
@@ -224,11 +223,13 @@ __STATIC_INLINE uint8_t State_Machine() {
 		break;
 
 	case STATE_DECISION:
+		bool isLeftDetected = sensorStateSum & MASKLEFT;
+				bool isRightDetected = sensorStateSum & MASKRIGHT;
+				bool isSensorStateFull = (sensorStateSum & 0x007FFF00) == 0x007FFF00;
 		state = STATE_IDLE;
+		isleftLed = 0;
+		isRightLed = 0;
 
-		isLeftDetected = sensorStateSum & MASKLEFT;
-		isRightDetected = sensorStateSum & MASKRIGHT;
-		isSensorStateFull = (sensorStateSum & 0x00FFFF00) == 0x00FFFF00;
 
 		if (isSensorStateFull) {
 
@@ -325,12 +326,12 @@ void Drive_First() {
 	Drive_Start();
 	while (endmarkCNT < 2) {
 
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isLeftDetected);
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isleftLed);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightLed);
 
 		uint8_t buzzer = (isMarkerDetected) ?
 		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20 :
-												0;
+												5;
 		__HAL_TIM_SET_COMPARE(&htim15, TIM_CHANNEL_1, buzzer);
 
 		if ((endmarkCNT == 0) && (crossCNT == 1)) {
@@ -447,8 +448,8 @@ void Drive_First_Pit_In_Correct() {
 	Motor_Start();
 	Drive_Start();
 	while (endmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isLeftDetected);
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isleftLed);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightLed);
 
 		uint8_t buzzer = (isMarkerDetected) ?
 		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20 :
@@ -572,8 +573,8 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 void Drive_Second() {
 	//output
 
-	uint32_t tempMarkRead[400];
-	int32_t tempMarkLength[400];
+	uint32_t secTempMarkRead[400];
+	int32_t secTempMarkLength[400];
 	int32_t returnTempMarkLength[400];
 	uint16_t returnSaveFirst[400];
 
@@ -602,8 +603,8 @@ void Drive_Second() {
 	Buzzer_Start();
 	bool secDrive = 1;
 	while (secEndmarkCNT < 2) {
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isLeftDetected);
-		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightDetected);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, isleftLed);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, isRightLed);
 
 		uint8_t buzzer = (isMarkerDetected) ?
 		__HAL_TIM_GET_AUTORELOAD(&htim15) / 20 :
@@ -616,11 +617,12 @@ void Drive_Second() {
 			secDrive = 0;
 			targetVelocity = targetVelocitySetting;
 		}
+
 		if (secDrive) {
 			Second_State_Machine(Pre_State(mark), mark, secMarkIndex);
 		}
 		if (mark == MARK_END) {
-			tempMarkRead[secMarkIndex] = mark;
+			secTempMarkRead[secMarkIndex] = mark;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			secMarkIndex++;
@@ -628,13 +630,13 @@ void Drive_Second() {
 		} else if (mark == MARK_CROSS) {
 			secCrossCNT++;
 		} else if (mark == MARK_RIGHT) {
-			tempMarkRead[secMarkIndex] = mark;
+			secTempMarkRead[secMarkIndex] = mark;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			secMarkIndex++;
 			secMarkRightCNT++;
 		} else if (mark == MARK_LEFT) {
-			tempMarkRead[secMarkIndex] = mark;
+			secTempMarkRead[secMarkIndex] = mark;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			secMarkIndex++;
@@ -652,7 +654,7 @@ void Drive_Second() {
 			targetVelocity = 2.5;
 			decel = (currentVelocity * currentVelocity
 					- targetVelocity * targetVelocity)
-					/ (2 * markLengthFirst[secMarkIndex - 1]);
+					/ ( markLengthFirst[secMarkIndex - 1]);
 
 		}
 	}

@@ -30,7 +30,7 @@ typedef struct {
 	volatile float Integral;
 	volatile float gainP;
 	volatile float gainI;
-	volatile uint32_t currentTick;
+	volatile int32_t currentTick;
 	volatile float wheel_rad_per_sec_cmd;
 
 

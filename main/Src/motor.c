@@ -695,4 +695,3 @@ void Motor_Test_76EHWAN() {
 	HAL_LPTIM_Encoder_Stop(MOTORR_ENCODER_TIMER);
 	HAL_LPTIM_Encoder_Stop(MOTORL_ENCODER_TIMER);
 }
-

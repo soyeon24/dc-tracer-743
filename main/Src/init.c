@@ -29,7 +29,6 @@ ST7735_Object_t hLCD;
 #define CUSTOM_FLASH_SECTOR_ADDR  0x08040000  // 원하는 sector 시작 주소 (예: Bank 1, Sector 4)
 #define CUSTOM_FLASH_SECTOR_SIZE  0x20000     // 128KB
 
-
 void Setting() {
 
 }
@@ -40,16 +39,36 @@ void Setting() {
 //						target1_5pitin_48},{ "1.7",target1_7pitin_38 },{"tv 1.8",target1_8pitin_6},
 //,
 
+menu_t menu[] = { { "cali", Sensor_Calibration }, { "2. first ", Drive_First },
+		{ "safety drive", Drive_First_Pit_In_Correct }, { "4. secD",
+				Drive_Second }, { "5.pit in", Change_Pit_In }, { "6.curverate",
+				Change_curve_rate }, { "final slow", safety_targetV1 }, {
+				"setting", Setting_Menu } };
 
-menu_t menu[] = {{"Decel", Change_decelSetting},{"2. first ", Drive_First }, {"savecm",Change_saveCentiMeter},{"4. secD",Drive_Second }, {"5.pit in",Change_Pit_In},{"6.curverate",Change_curve_rate},{"ACCEL", Change_accelSetting},{"setting",Setting_Menu}};
-
-void PresetTV35(){
+void safety_targetV1() {
 	uint8_t sw = 0;
-	while(1){
+	while (1) {
 		sw = Custom_Switch_Read();
-		if(sw == CUSTOM_JS_L_TO_R){
-						break;
-					}
+		Custom_LCD_Printf(0,1,"tv 1");
+		if (sw == CUSTOM_JS_D_TO_U) {
+		pitInLine = 0.12;
+		targetVelocitySetting = 1.0;
+
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+
+		} else if (sw == CUSTOM_JS_L_TO_R) {
+			break;
+		}
+	}
+}
+
+void PresetTV35() {
+	uint8_t sw = 0;
+	while (1) {
+		sw = Custom_Switch_Read();
+		if (sw == CUSTOM_JS_L_TO_R) {
+			break;
+		}
 
 	}
 	targetVelocitySetting = 3.5f;
@@ -99,7 +118,7 @@ void Battery_LCD_Picture() {
 	} else {
 		percentColor = 0xF800;
 	}
-	Custom_LCD_Printf(1, 9, "%f",batteryVolt);
+	Custom_LCD_Printf(1, 9, "%f", batteryVolt);
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 41, 145, 1, 14, 0xFFFF);
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 41, 145, 35, 1, 0xFFFF);
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 41, 158, 35, 1, 0xFFFF);
@@ -185,4 +204,3 @@ void Init() {
 
 	}
 }
-

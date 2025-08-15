@@ -17,6 +17,7 @@ void Custom_LCD_Printf(int x, int y, const char *text, ...);
 void Battery_LCD_Picture();
 
 void PresetTV35();
+void safety_targetV1();
 typedef struct {
 	char name[10];
 	void (*func)(void);

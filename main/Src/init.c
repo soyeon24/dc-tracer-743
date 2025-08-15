@@ -110,7 +110,7 @@ void Main_Menu_Print(uint32_t index) {
 
 uint32_t percentColor = 0;
 void Battery_LCD_Picture() {
-	float batteryPercent = (batteryVolt) / 25.2;
+	float batteryPercent = (batteryVolt-19.2f) / 8.f;
 	if (batteryPercent > 0.75) {
 		percentColor = 0x06A0;
 	} else if (batteryPercent > 0.3) {

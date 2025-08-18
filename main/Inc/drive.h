@@ -8,6 +8,7 @@
 #ifndef MAIN_INC_DRIVE_H_
 #define MAIN_INC_DRIVE_H_
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "../../MDK-ARM/Inc/main.h"
 void Drive_First(void);
@@ -40,6 +41,8 @@ extern volatile float peakVelocity;
 extern volatile float targetVelocityPitinSetting;
 extern float_t saveCentiMeter;
 extern uint8_t changeingSafety;
+
+extern bool windowDeadZone;
 
 #endif /* MAIN_INC_DRIVE_H_ */
 

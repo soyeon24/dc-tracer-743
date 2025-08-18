@@ -47,7 +47,7 @@ int32_t positionCenter[15] = { -28000, -24000, -20000, -16000, -12000, -8000,
 		-4000, 0, 4000, 8000, 12000, 16000, 20000, 24000, 28000 };
 
 volatile float accel;
-volatile float accelSetting = 7.0f;
+volatile float accelSetting = 6.0f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
 volatile float pitInLine = 0.09f;
@@ -64,9 +64,9 @@ volatile int indexMarkcnt = 0;
 
 volatile float currentVelocity;
 volatile float targetVelocity;
-volatile float targetVelocitySetting = 2.5f;
+volatile float targetVelocitySetting = 2.7f;
 volatile float targetVelocityPitin;
-volatile float targetVelocityPitinSetting = 2.0f;
+volatile float targetVelocityPitinSetting = 2.5f;
 
 volatile float peakVelocity = 5.5;
 float_t pitInCentimeter = 5.0f;
@@ -590,17 +590,22 @@ void First_Drive_Mark_Debug() {
 	}
 }
 
+
+bool windowDeadZone = 0;
+
 __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		uint32_t index) {
 	static uint8_t secondState = STATE_IDLE;
 	switch (secondState) {
 	case STATE_IDLE:
+		windowDeadZone = 0;
 		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 0);
 		if (currentState == STATE_STRAIGHT) {
 			secondState = STATE_ACCEL;
 		}
 		break;
 	case STATE_ACCEL:
+		windowDeadZone = 1;
 		uint32_t currentTick = (MotorL.currentTick + MotorR.currentTick) / 2;
 		uint32_t decelTick = (4096) * (63 / 17) / (0.035 * M_PI)
 				* (currentVelocity * currentVelocity
@@ -619,6 +624,7 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 			break;
 		}
 	case STATE_DECCEL:
+		windowDeadZone = 0;
 		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
 		targetVelocity = targetVelocitySetting;
 		secondState = STATE_IDLE;

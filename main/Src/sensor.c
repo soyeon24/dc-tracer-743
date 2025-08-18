@@ -9,6 +9,7 @@
 #include "sensor.h"
 #include "lcd.h"
 #include "motor.h"
+#include "drive.h"
 #include "setting.h"
 #include "../../MDK-ARM/Inc/adc.h"
 #include "../../MDK-ARM/Inc/custom_switch.h"
@@ -28,7 +29,7 @@ uint32_t blackMax[16] = { 0 };
 uint32_t sensorNormalized[16] = { 0 };
 uint8_t center = 7;
 uint16_t sensorState = 0;
-uint32_t sensorThreshold = 45;
+uint32_t sensorThreshold = 55;
 uint8_t windowStartIndex = 17;
 uint8_t windowEndIndex = 0;
 window_t Window;
@@ -37,6 +38,13 @@ int32_t sensorPosition[16] = {
 		-30000, -26000, -22000, -18000, -14000, -10000, -6000, -2000,
 		//
 		2000, 6000, 10000, 14000, 18000, 22000, 26000, 30000 };
+
+
+int32_t sensorPositionDead[16] = {
+//
+		-26000, -22000, -18000, -14000, -10000, -6000, -2000,0,0,
+		//
+		2000, 6000, 10000, 14000, 18000, 22000, 26000};
 
 uint32_t MARK_STATE_LEFT[16] = { 0x0000, 0x0000, 0x0000, 0x8000, 0xC000, 0xE000,
 		0xF000, 0xF800, 0xFC00, 0xFE00, 0xFF00, 0xFF80, 0xFFC0, 0xFFE0, 0xFFF0,
@@ -183,11 +191,11 @@ void TIM6_Sensor_IRQ() {
 	uint32_t rawValue3;
 	uint32_t rawValue;
 
-	HAL_GPIO_WritePin(Sensor_MUX4_GPIO_Port, Sensor_MUX4_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(Sensor_MUX0_GPIO_Port, Sensor_MUX0_Pin, i & 0x1);
 	HAL_GPIO_WritePin(Sensor_MUX1_GPIO_Port, Sensor_MUX1_Pin, i & 0x2);
 	HAL_GPIO_WritePin(Sensor_MUX2_GPIO_Port, Sensor_MUX2_Pin, i & 0x4);
 	HAL_GPIO_WritePin(Sensor_MUX3_GPIO_Port, Sensor_MUX3_Pin, i & 0x8);
+	HAL_GPIO_WritePin(Sensor_MUX4_GPIO_Port, Sensor_MUX4_Pin, GPIO_PIN_SET);
 	HAL_ADC_Start(&hadc1);
 
 	if (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK) {
@@ -241,8 +249,15 @@ void TIM6_Sensor_IRQ() {
 			if (sensorIndex > currentWindowEndIndex) {
 				currentWindowEndIndex = sensorIndex;
 			}
+			if(windowDeadZone){
+				weightedSum += sensorPositionDead[sensorIndex]
+									* ((int32_t) sensorNormalized[sensorIndex]);
+			}
+			else{
 			weightedSum += sensorPosition[sensorIndex]
 					* ((int32_t) sensorNormalized[sensorIndex]);
+
+			}
 			weightedNormalized += sensorNormalized[sensorIndex];
 
 		}

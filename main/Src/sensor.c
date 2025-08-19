@@ -61,9 +61,9 @@ uint32_t MARK_STATE_CENTER[16] = { 0xF000, 0xF100, 0xFC00, 0x7E00, 0x3F00,
 		0x000F, 0x000F //
 		};
 
-menu_t sensor_menu[] = { { "1.S Raw", Sensor_Test_Raw }, { "2.S Norm",
-		Sensor_Normalized }, { "3.S state", Sensor_State }, { "4.S posit",
-		Position_Test }, { "5.S Test ", Sensor_Test_Menu }, { "6.adcread",
+menu_t sensor_menu[] = { { "1.S Raw    ", Sensor_Test_Raw }, { "2.S Norm   " ,
+		Sensor_Normalized }, { "3.S state  ", Sensor_State }, { "4.S posit ",
+		Position_Test }, { "5.D Test  ", Drive_Test_Menu }, { "6.adcread   ",
 		Battery_LCD }, { "cali", Sensor_Calibration }, { "8. back ",
 		Back_To_Menu } };
 
@@ -447,6 +447,7 @@ void Sensor_Calibration() {
 			break;
 		}
 	}
+	Sensor_State();
 
 	Sensor_Stop();
 

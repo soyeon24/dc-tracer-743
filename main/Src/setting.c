@@ -17,7 +17,7 @@
 
 #define SETTING_MENU_CNT 8
 
-menu_t settingMenu[] = { {"tv setting", Change_Target_Velocity}, {"threshold", Change_Threshold},{"curverrate",Change_curve_rate},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
+menu_t settingMenu[] = { {"tv setting", Change_Target_Velocity}, {"threshold", Change_Threshold},{"pitin Tv",Change_Target_Velocity_Pit_In},{"6.drive M",Drive_Test_Menu}, { "7.S menu ", Sensor_Test_Menu }, { "8.M menu ",
 		Motor_Test_Menu } ,{"peak v",Change_peak_v},{"back", Back_To_Menu}};
 
 
@@ -195,7 +195,7 @@ void Change_Target_Velocity_Pit_In() {
 	Custom_LCD_Clear();
 	uint8_t sw = CUSTOM_JS_NONE;
 	while (1) {
-		Custom_LCD_Printf(0, 0, "%f", targetVelocitySetting);
+		Custom_LCD_Printf(0, 0, "%f", targetVelocityPitinSetting);
 		sw = Custom_Switch_Read();
 		if(sw== CUSTOM_JS_D_TO_U){
 			targetVelocityPitinSetting += 0.1;

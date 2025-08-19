@@ -39,9 +39,9 @@ void Setting() {
 //						target1_5pitin_48},{ "1.7",target1_7pitin_38 },{"tv 1.8",target1_8pitin_6},
 //,
 
-menu_t menu[] = { { "cali", Sensor_Calibration }, { "2. first ", Drive_First },
-		{ "safety drive", Drive_First_Pit_In_Correct }, { "4. secD",
-				Drive_Second }, { "5.pit in", Change_Pit_In }, { "6.curverate",
+menu_t menu[] = { { "1. cali  ", Sensor_Calibration }, { "2. first  ", Drive_First },
+		{ "3. safety D", Drive_First_Pit_In_Correct }, { "4. sec D   ",
+				Drive_Second }, { "5. pit in", Change_Pit_In }, { "6.curve  ",
 				Change_curve_rate }, { "final slow", safety_targetV1 }, {
 				"setting", Setting_Menu } };
 

@@ -91,10 +91,10 @@ uint32_t safeDistance = 60;
 
 uint32_t endmarkChange = 2;
 
-menu_t drive_menu[] = { { "1st D", Drive_First }, { "2nd D slow",
-		Drive_First_Pit_In_Correct }, { "2nd D", Drive_Second }, { "4.encoder",
+menu_t drive_menu[] = { { "1st D    ", Drive_First }, { "2nd D slow",
+		Drive_First_Pit_In_Correct }, { "2nd D   ", Drive_Second }, { "4.encoder",
 		Encoder_Test }, { "mark debug", Mark_Debug }, { "5.S posi",
-		Position_Test }, { "accel", Change_accelSetting }, { "back menu",
+		Position_Test }, { "accel   ", Change_accelSetting }, { "back menu",
 		Back_To_Menu } };
 
 uint32_t DRIVE_MENU_CNT = (sizeof(drive_menu) / sizeof(menu_t));
@@ -637,7 +637,7 @@ void Drive_Second() {
 	uint8_t sw = 0;
 	while (1) {
 		sw = Custom_Switch_Read();
-		Custom_LCD_Printf(0, 0, "%d", changeingSafety);
+		Custom_LCD_Printf(0, 0, "pitin %d", changeingSafety);
 		if (sw == CUSTOM_JS_D_TO_U) {
 			changeingSafety++;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
@@ -658,6 +658,18 @@ void Drive_Second() {
 			break;
 		}
 	}
+	while (1) {
+
+			Custom_LCD_Printf(0, 0, "tv %d", targetVelocitySetting);
+			sw = Custom_Switch_Read();
+			if (sw == CUSTOM_JS_D_TO_U) {
+				targetVelocitySetting+=0.1;
+			} else if (sw == CUSTOM_JS_U_TO_D) {
+				targetVelocitySetting-=0.1;
+			} else if (sw == (CUSTOM_JS_L_TO_R || CUSTOM_JS_R_TO_L)) {
+				break;
+			}
+		}
 
 
 	uint32_t secTempMarkRead[400];
@@ -681,6 +693,7 @@ void Drive_Second() {
 	//Input
 	accel = 0;
 	targetVelocity = peakVelocity;
+	targetVelocityPitin = targetVelocityPitinSetting;
 	decel = decelSetting;
 	bool beforeEnd = 0;
 //accel = 0;
@@ -744,10 +757,10 @@ void Drive_Second() {
 			beforeEnd = 1;
 		}
 		if (beforeEnd) {
-			targetVelocity = 2.5;
-			decel = (currentVelocity * currentVelocity
-					- targetVelocity * targetVelocity)
-					/ (markLengthFirst[secMarkIndex - 1]);
+			targetVelocity = targetVelocityPitin;
+//			decel = (currentVelocity * currentVelocity
+//					- targetVelocityPitin * targetVelocityPitin)
+//					/ (2*markLengthFirst[secMarkIndex - changeingSafety]);
 
 		}
 	}

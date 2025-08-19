@@ -19,6 +19,7 @@ void Change_curve_rate();
 void Change_peak_v();
 void Change_curveDecel();
 void Change_saveCentiMeter();
+void Change_Target_Velocity_Pit_In();
 //void Buzzer_TIM15_IRQ();
 //void Buzzer_Start();
 

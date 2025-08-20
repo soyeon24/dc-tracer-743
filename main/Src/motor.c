@@ -56,11 +56,11 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP = 0.45f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46
-	MotorL.gainI =500.0f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP = 0.6f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46 //best 0.45 500
+	MotorL.gainI =1200.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP = 0.4f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97
-	MotorR.gainI = 500.0f; //400.0f;//0.0f;//
+	MotorR.gainP =0.9f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500
+	MotorR.gainI = 860.0f; //400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더
@@ -354,13 +354,13 @@ void Motor_Left_Gain_Both() {
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-			MotorL.gainP *= 2;
+			MotorL.gainP += 0.1;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorL.gainP /=3;
+			MotorL.gainP -=0.01;
 		} else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorL.gainI *=2;
+			MotorL.gainI +=100;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorL.gainI +=10;
+			MotorL.gainI -=10;
 		}
 
 	}
@@ -536,13 +536,13 @@ void Motor_Right_Gain_Both() {
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-					MotorR.gainP *=2;
+					MotorR.gainP +=0.1;
 				} else if (sw == CUSTOM_JS_R_TO_L) {
-					MotorR.gainP /=3;
+					MotorR.gainP -=0.01;
 				} else if (sw == CUSTOM_JS_D_TO_U) {
-					MotorR.gainI *=2;
+					MotorR.gainI +=100;
 				} else if (sw == CUSTOM_JS_U_TO_D) {
-					MotorR.gainI +=10;
+					MotorR.gainI -=10;
 				}
 
 	}

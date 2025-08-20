@@ -40,8 +40,8 @@ void Setting() {
 //,
 
 menu_t menu[] = { { "1. cali  ", Sensor_Calibration }, { "2. first  ", Drive_First },
-		{ "3. safety D", Drive_First_Pit_In_Correct }, { "4. sec D   ",
-				Drive_Second }, { "5. pit in", Change_Pit_In }, { "6.curve  ",
+		{ "3. safety D", Drive_First_Pit_In_Correct }, { "4. secD Menu   ",
+				Drive_Second_fast_menu }, { "5. pit in", Change_Pit_In }, { "6.curve  ",
 				Change_curve_rate }, { "final slow", safety_targetV1 }, {
 				"setting", Setting_Menu } };
 

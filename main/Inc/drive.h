@@ -26,7 +26,12 @@ void Mark_Debug();
 void Drive_Test_Menu();
 void Buzzer_Stop();
 void Drive_First_Pit_In_Correct();
-
+void targeV3();
+void targeV31();
+void targeV32();
+void targeV33();
+void SecD_Menu_Print();
+void Drive_Second_fast_menu();
 extern volatile float targetVelocity;
 extern volatile float currentVelocity;
 extern volatile float targetVelocitySetting;

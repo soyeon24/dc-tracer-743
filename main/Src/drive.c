@@ -92,8 +92,8 @@ uint32_t safeDistance = 60;
 uint32_t endmarkChange = 2;
 
 menu_t drive_menu[] = { { "1st D    ", Drive_First }, { "2nd D slow",
-		Drive_First_Pit_In_Correct }, { "2nd D   ", Drive_Second }, { "4.encoder",
-		Encoder_Test }, { "mark debug", Mark_Debug }, { "5.S posi",
+		Drive_First_Pit_In_Correct }, { "2nd D   ", Drive_Second }, {
+		"4.encoder", Encoder_Test }, { "mark debug", Mark_Debug }, { "5.S posi",
 		Position_Test }, { "accel   ", Change_accelSetting }, { "back menu",
 		Back_To_Menu } };
 
@@ -590,7 +590,6 @@ void First_Drive_Mark_Debug() {
 	}
 }
 
-
 bool windowDeadZone = 0;
 
 __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
@@ -660,17 +659,16 @@ void Drive_Second() {
 	}
 	while (1) {
 
-			Custom_LCD_Printf(0, 0, "tv %d", targetVelocitySetting);
-			sw = Custom_Switch_Read();
-			if (sw == CUSTOM_JS_D_TO_U) {
-				targetVelocitySetting+=0.1;
-			} else if (sw == CUSTOM_JS_U_TO_D) {
-				targetVelocitySetting-=0.1;
-			} else if (sw == (CUSTOM_JS_L_TO_R || CUSTOM_JS_R_TO_L)) {
-				break;
-			}
+		Custom_LCD_Printf(0, 0, "tv %d", targetVelocitySetting);
+		sw = Custom_Switch_Read();
+		if (sw == CUSTOM_JS_D_TO_U) {
+			targetVelocitySetting += 0.1;
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+			targetVelocitySetting -= 0.1;
+		} else if (sw == (CUSTOM_JS_L_TO_R || CUSTOM_JS_R_TO_L)) {
+			break;
 		}
-
+	}
 
 	uint32_t secTempMarkRead[400];
 	int32_t secTempMarkLength[400];
@@ -799,6 +797,156 @@ void Drive_Second() {
 
 }
 
+menu_t secondDMenu[] = { { "tv 3 secD ", targeV3 },{ "tv 3.1 secD ", targeV31 },{ "tv 3.2 secD ", targeV32 },{ "tv 3.3 secD ", targeV33 }, {"back",Back_To_Menu} };
+
+void targeV3() {
+	uint8_t sw = 0;
+	while (1) {
+		sw = Custom_Switch_Read();
+		Custom_LCD_Printf(0, 0, "secd");
+		Custom_LCD_Printf(0, 1, "tv3 right");
+		Custom_LCD_Printf(0, 2, "secd down");
+		Custom_LCD_Printf(0, 3, "back L");
+		Custom_LCD_Printf(0,4, "pitin D up");
+		if (sw == CUSTOM_JS_L_TO_R) {
+			targetVelocitySetting = 3.0;
+			curveRate = 0.00006f;
+			curveDecel = 14000;
+			pitInCentimeter = 8.5;
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+			Drive_Second();
+
+		}
+		else if(sw == CUSTOM_JS_D_TO_U){
+				Drive_First_Pit_In_Correct();
+				}
+		else if (sw == CUSTOM_JS_R_TO_L) {
+			break;
+		}
+	}
+}
+
+void targeV31() {
+	uint8_t sw = 0;
+	while (1) {
+		sw = Custom_Switch_Read();
+		Custom_LCD_Printf(0, 0, "secd");
+		Custom_LCD_Printf(0, 1, "tv3.1 right");
+		Custom_LCD_Printf(0, 2, "secd down");
+		Custom_LCD_Printf(0, 3, "back L");
+		Custom_LCD_Printf(0,4, "pitin D up");
+		if (sw == CUSTOM_JS_L_TO_R) {
+			targetVelocitySetting = 3.1;
+			curveRate = 0.000065f;
+			curveDecel = 14000;
+			pitInCentimeter = 8.5;
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+			Drive_Second();
+		}
+		else if(sw == CUSTOM_JS_D_TO_U){
+		Drive_First_Pit_In_Correct();
+		}
+		else if (sw == CUSTOM_JS_R_TO_L) {
+			break;
+		}
+	}
+}
+void targeV32() {
+	uint8_t sw = 0;
+	while (1) {
+		sw = Custom_Switch_Read();
+		Custom_LCD_Printf(0, 0, "secd");
+		Custom_LCD_Printf(0, 1, "tv3.2 right");
+		Custom_LCD_Printf(0, 2, "secd down");
+		Custom_LCD_Printf(0, 3, "back L");
+		Custom_LCD_Printf(0,4, "pitin D up");
+		if (sw == CUSTOM_JS_L_TO_R) {
+			targetVelocitySetting = 3.2;
+			curveRate = 0.000065f;
+			curveDecel = 14000;
+			pitInCentimeter = 8.5;
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+			Drive_Second();
+		} else if(sw == CUSTOM_JS_D_TO_U){
+			Drive_First_Pit_In_Correct();
+			}
+		else if (sw == CUSTOM_JS_R_TO_L) {
+			break;
+		}
+	}
+}
+void targeV33() {
+	uint8_t sw = 0;
+	while (1) {
+		sw = Custom_Switch_Read();
+		Custom_LCD_Printf(0, 0, "secd");
+		Custom_LCD_Printf(0, 1, "tv3.3 right");
+		Custom_LCD_Printf(0, 2, "secd down");
+		Custom_LCD_Printf(0, 3, "back L");
+		Custom_LCD_Printf(0,4, "pitin D up");
+		if (sw == CUSTOM_JS_L_TO_R) {
+			targetVelocitySetting = 3.3;
+			curveRate = 0.000055f;
+			curveDecel = 10000;
+			pitInCentimeter = 8.5;
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+			Drive_Second();
+		} else if(sw == CUSTOM_JS_D_TO_U){
+			Drive_First_Pit_In_Correct();
+			}
+		else if (sw == CUSTOM_JS_R_TO_L) {
+			break;
+		}
+	}
+}
+void SecD_Menu_Print(uint32_t index) {
+
+	for (uint32_t i = 0; i < 8; i++) {
+		Set_Color(index, i);
+		Custom_LCD_Printf(0, i + 1, "%s", (secondDMenu + i)->name);
+
+	}
+}
+
+void Drive_Second_fast_menu() {
+	//output
+	uint32_t sw = CUSTOM_JS_NONE;
+
+	uint32_t selected_index_secD = 0;
+
+	uint32_t numOfSecondDMenu = sizeof(secondDMenu) / sizeof(menu_t);
+	//	HAL_Delay(1000);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+	while (1) {
+		//		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+		//			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+		POINT_COLOR = WHITE;
+		BACK_COLOR = BLACK;
+		while (1) {
+			Custom_LCD_Printf(0, 0, "SecDMenu");
+			Battery_LCD_Picture();
+			Set_Color(numOfSecondDMenu, selected_index_secD);
+			SecD_Menu_Print(selected_index_secD);
+			sw = Custom_Switch_Read();
+			if (sw == CUSTOM_JS_U_TO_D) {
+				selected_index_secD++;
+				selected_index_secD = (selected_index_secD % 8);
+			} else if (sw == CUSTOM_JS_D_TO_U) {
+				selected_index_secD--;
+				selected_index_secD = (selected_index_secD % 8);
+			} else if (sw == CUSTOM_JS_L_TO_R) {
+				Custom_LCD_Clear();
+
+				(secondDMenu + selected_index_secD)->func();
+
+			}
+			Set_Color(numOfSecondDMenu, selected_index_secD);
+
+		}
+
+	}
+}
 void Drive_Third() {
 
 }

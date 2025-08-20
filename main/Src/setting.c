@@ -57,6 +57,7 @@ void Change_peak_v(){
 			}
 		}
 }
+
 void Change_curveDecel(){
 	Custom_LCD_Clear();
 		uint8_t sw = CUSTOM_JS_NONE;

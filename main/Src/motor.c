@@ -21,7 +21,7 @@
 
 #define ABS(x) ((x>0) ? x:(-x))
 #define MIN(a, b) ((a > b) ? b : a )
-#define  ENCODER_PULSE_PER_REVOLUTION 4096.f
+#define ENCODER_PULSE_PER_REVOLUTION 4096.f
 #define GEAR (63.f/17.f)
 #define WHEEL 0.035f //4cm라 가정
 #define RADIUS (WHEEL/2)
@@ -57,10 +57,10 @@ int motorTickR = 0;
 
 void Motor_Start() {
 	MotorL.gainP = 0.6f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46 //best 0.45 500
-	MotorL.gainI =1200.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainI = 1000.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP =0.9f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500
-	MotorR.gainI = 860.0f; //400.0f;//0.0f;//
+	MotorR.gainP = 0.6f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500
+	MotorR.gainI = 1200.0f; //400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더
@@ -240,7 +240,8 @@ void Motor_LPTIM4_IRQ() {
 
 	MotorL.EncV = ((float) MotorL.EncDiff) / TIME * ANGLE_PER_TICK;
 	MotorR.EncV = ((float) MotorR.EncDiff) / TIME * ANGLE_PER_TICK; //각속도
-
+	const float omegaL = MotorL.EncV * 2.0f * (float) M_PI;
+	const float omegaR = MotorR.EncV * 2.0f * (float) M_PI;
 	MotorL.ComV = MotorL.v * TICK_PER_METER;
 	MotorR.ComV = MotorR.v * TICK_PER_METER; // tick per sec
 
@@ -257,8 +258,8 @@ void Motor_LPTIM4_IRQ() {
 	MotorL.CurPI = MotorL.Integral * MotorL.gainI + MotorL.ErrV * MotorL.gainP;
 	MotorR.CurPI = MotorR.Integral * MotorR.gainI + MotorR.ErrV * MotorR.gainP;
 
-	MotorL.VoltPI = MotorL.CurPI * MOTOR_RES;
-	MotorR.VoltPI = MotorR.CurPI * MOTOR_RES;
+	MotorL.VoltPI = MotorL.CurPI * MOTOR_RES + MOTOR_KE * omegaL;
+	MotorR.VoltPI = MotorR.CurPI * MOTOR_RES+ MOTOR_KE * omegaR;
 
 	bool DirL = MotorL.VoltPI > 0;
 	bool DirR = MotorR.VoltPI > 0;
@@ -356,11 +357,11 @@ void Motor_Left_Gain_Both() {
 		if (sw == CUSTOM_JS_L_TO_R) {
 			MotorL.gainP += 0.1;
 		} else if (sw == CUSTOM_JS_R_TO_L) {
-			MotorL.gainP -=0.01;
+			MotorL.gainP -= 0.01;
 		} else if (sw == CUSTOM_JS_D_TO_U) {
-			MotorL.gainI +=100;
+			MotorL.gainI += 100;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
-			MotorL.gainI -=10;
+			MotorL.gainI -= 10;
 		}
 
 	}
@@ -536,14 +537,14 @@ void Motor_Right_Gain_Both() {
 		Custom_LCD_Printf(0, 8, "%f", batteryVolt);
 		Custom_LCD_Printf(0, 9, "down to back");
 		if (sw == CUSTOM_JS_L_TO_R) {
-					MotorR.gainP +=0.1;
-				} else if (sw == CUSTOM_JS_R_TO_L) {
-					MotorR.gainP -=0.01;
-				} else if (sw == CUSTOM_JS_D_TO_U) {
-					MotorR.gainI +=100;
-				} else if (sw == CUSTOM_JS_U_TO_D) {
-					MotorR.gainI -=10;
-				}
+			MotorR.gainP += 0.1;
+		} else if (sw == CUSTOM_JS_R_TO_L) {
+			MotorR.gainP -= 0.01;
+		} else if (sw == CUSTOM_JS_D_TO_U) {
+			MotorR.gainI += 100;
+		} else if (sw == CUSTOM_JS_U_TO_D) {
+			MotorR.gainI -= 10;
+		}
 
 	}
 

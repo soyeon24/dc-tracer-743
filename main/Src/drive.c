@@ -50,7 +50,7 @@ volatile float accel;
 volatile float accelSetting = 6.0f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
-volatile float pitInLine = 0.09f;
+volatile float pitInLine = 0.085f;
 volatile float curveRate = 0.000058f;
 volatile float curveDecel = 16500.f;
 
@@ -64,7 +64,7 @@ volatile int indexMarkcnt = 0;
 
 volatile float currentVelocity;
 volatile float targetVelocity;
-volatile float targetVelocitySetting = 2.7f;
+volatile float targetVelocitySetting = 2.5f;
 volatile float targetVelocityPitin;
 volatile float targetVelocityPitinSetting = 2.5f;
 
@@ -109,6 +109,25 @@ void Drive_Menu_Print(uint32_t index) {
 	}
 }
 
+
+void Change_pitin_decel(){
+	Custom_LCD_Clear();
+	uint8_t sw = CUSTOM_JS_NONE;
+	while (1) {
+		Custom_LCD_Printf(0, 0, "%f", pitInDecel);
+		sw = Custom_Switch_Read();
+		if(sw== CUSTOM_JS_D_TO_U){
+			pitInDecel+= 0.5f;
+		}
+		else if(sw ==CUSTOM_JS_U_TO_D){
+			pitInDecel -= 0.1f;
+		}
+		else if(sw == CUSTOM_JS_L_TO_R){
+			break;
+		}
+	}
+	Change_curveDecel();
+}
 void Drive_Test_Menu() {
 	uint32_t numOfDriveMenu = sizeof(drive_menu) / sizeof(menu_t);
 	uint32_t selected_index = 0;
@@ -293,7 +312,7 @@ __STATIC_INLINE uint8_t Pre_State(uint8_t mark) {
 
 }
 uint16_t markIdxIncludedCross;
-uint16_t markIdxIncludedCrossArray[400] = {0}; //n번째 cross가 markIdxIncludeCross 위치 저장
+uint16_t markIdxIncludedCrossArray[400] = { 0 }; //n번째 cross가 markIdxIncludeCross 위치 저장
 void Drive_First() {
 //output
 
@@ -643,7 +662,7 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 }
 
 uint16_t markSaveIncludedCross[400];
-
+float pitInDecel = 1.0f;
 void Drive_Second() {
 	uint16_t secMarkIdxIncludedCross = 0;
 
@@ -780,7 +799,19 @@ void Drive_Second() {
 			beforeEnd = 1;
 		}
 		if (beforeEnd) {
+//			if ((markLengthFirst[secMarkIndex + changeingSafety] )
+//					< (uint32_t) (MotorL.currentTick + MotorR.currentTick)) {
+//				targetVelocity = targetVelocityPitin;
+//				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+//				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+//			} else {
+//				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+//				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+//			}
+			decel = pitInDecel;
 			targetVelocity = targetVelocityPitin;
+
+
 //			decel = (currentVelocity * currentVelocity
 //					- targetVelocityPitin * targetVelocityPitin)
 //					/ (2*markLengthFirst[secMarkIndex - changeingSafety]);
@@ -825,7 +856,7 @@ void Drive_Second() {
 menu_t secondDMenu[] = { { "tv 3 secD ", targeV3 },
 		{ "tv 3.1 secD ", targeV31 }, { "tv 3.2 secD ", targeV32 }, {
 				"tv 3.3 secD ", targeV33 }, { "6.curve  ", Change_curve_rate },
-		{ "ccr1", Motor_Test_76EHWAN }, { "back", Back_To_Menu } };
+		{ "ccr1", Motor_Test_76EHWAN }, {"pitinDECEL", Change_pitin_decel},{ "back", Back_To_Menu } };
 
 void targeV3() {
 	uint8_t sw = 0;

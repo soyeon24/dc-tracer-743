@@ -46,6 +46,8 @@ extern volatile float peakVelocity;
 extern volatile float targetVelocityPitinSetting;
 extern float_t saveCentiMeter;
 extern uint8_t changeingSafety;
+extern float pitInDecel;
+void Change_pitin_decel();
 
 extern bool windowDeadZone;
 

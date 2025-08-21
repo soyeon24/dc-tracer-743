@@ -51,8 +51,8 @@ volatile float accelSetting = 6.0f;
 volatile float decelSetting = 8.0f;
 volatile float decel;
 volatile float pitInLine = 0.09f;
-volatile float curveRate = 0.00006f;
-volatile float curveDecel = 17500.f;
+volatile float curveRate = 0.000058f;
+volatile float curveDecel = 16500.f;
 
 float_t saveCentiMeter = 5.0f;
 #define saveTick(x) 	(uint32_t)(((x)/3.5f)*(63.f/17.f)*4096.f)
@@ -632,6 +632,7 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 }
 
 void Drive_Second() {
+	Custom_LCD_Clear();
 	//output
 	uint8_t sw = 0;
 	while (1) {
@@ -659,7 +660,7 @@ void Drive_Second() {
 	}
 	while (1) {
 
-		Custom_LCD_Printf(0, 0, "tv %d", targetVelocitySetting);
+		Custom_LCD_Printf(0, 0, "tv %f", targetVelocitySetting);
 		sw = Custom_Switch_Read();
 		if (sw == CUSTOM_JS_D_TO_U) {
 			targetVelocitySetting += 0.1;
@@ -797,7 +798,8 @@ void Drive_Second() {
 
 }
 
-menu_t secondDMenu[] = { { "tv 3 secD ", targeV3 },{ "tv 3.1 secD ", targeV31 },{ "tv 3.2 secD ", targeV32 },{ "tv 3.3 secD ", targeV33 }, {"back",Back_To_Menu} };
+menu_t secondDMenu[] = { { "tv 3 secD ", targeV3 },{ "tv 3.1 secD ", targeV31 },{ "tv 3.2 secD ", targeV32 },{ "tv 3.3 secD ", targeV33 }, { "6.curve  ",
+		Change_curve_rate }, {"ccr1", Motor_Test_76EHWAN},{"back",Back_To_Menu} };
 
 void targeV3() {
 	uint8_t sw = 0;
@@ -810,9 +812,9 @@ void targeV3() {
 		Custom_LCD_Printf(0,4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.0;
-			curveRate = 0.00006f;
-			curveDecel = 14000;
-			pitInCentimeter = 8.5;
+//			curveRate = 0.00006f;
+//			curveDecel = 14000;
+//			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
 
@@ -824,6 +826,7 @@ void targeV3() {
 			break;
 		}
 	}
+	Custom_LCD_Clear();
 }
 
 void targeV31() {
@@ -837,9 +840,9 @@ void targeV31() {
 		Custom_LCD_Printf(0,4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.1;
-			curveRate = 0.000065f;
-			curveDecel = 14000;
-			pitInCentimeter = 8.5;
+//			curveRate = 0.000065f;
+//			curveDecel = 14000;
+//			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
 		}
@@ -850,6 +853,7 @@ void targeV31() {
 			break;
 		}
 	}
+	Custom_LCD_Clear();
 }
 void targeV32() {
 	uint8_t sw = 0;
@@ -862,9 +866,9 @@ void targeV32() {
 		Custom_LCD_Printf(0,4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.2;
-			curveRate = 0.000065f;
-			curveDecel = 14000;
-			pitInCentimeter = 8.5;
+//			curveRate = 0.000065f;
+//			curveDecel = 14000;
+//			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
 		} else if(sw == CUSTOM_JS_D_TO_U){
@@ -874,6 +878,7 @@ void targeV32() {
 			break;
 		}
 	}
+	Custom_LCD_Clear();
 }
 void targeV33() {
 	uint8_t sw = 0;
@@ -886,9 +891,9 @@ void targeV33() {
 		Custom_LCD_Printf(0,4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.3;
-			curveRate = 0.000055f;
-			curveDecel = 10000;
-			pitInCentimeter = 8.5;
+//			curveRate = 0.000055f;
+//			curveDecel = 10000;
+//			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
 		} else if(sw == CUSTOM_JS_D_TO_U){
@@ -898,6 +903,7 @@ void targeV33() {
 			break;
 		}
 	}
+	Custom_LCD_Clear();
 }
 void SecD_Menu_Print(uint32_t index) {
 
@@ -939,7 +945,7 @@ void Drive_Second_fast_menu() {
 				Custom_LCD_Clear();
 
 				(secondDMenu + selected_index_secD)->func();
-
+				Custom_LCD_Clear();
 			}
 			Set_Color(numOfSecondDMenu, selected_index_secD);
 

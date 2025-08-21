@@ -495,9 +495,13 @@ void Sensor_Normalized() {
 }
 
 void Sensor_State() {
+uint8_t sw =0;
 	Sensor_Start();
-	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) != GPIO_PIN_SET) {
-
+	while (1) {
+		sw =Custom_Switch_Read();
+if(sw == CUSTOM_JS_L_TO_R){
+	break;
+}
 		char upper[9] = { 0 };
 		char lower[9] = { 0 };
 
@@ -523,8 +527,7 @@ void Sensor_State() {
 		Custom_LCD_Printf(0, 4, lower2);
 
 	}
-	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET) {
-	}
+
 	Sensor_Stop();
 	Custom_LCD_Clear();
 }

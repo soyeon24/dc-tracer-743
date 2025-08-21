@@ -56,10 +56,10 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP = 0.6f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46 //best 0.45 500
-	MotorL.gainI = 1000.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP = 0.7f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46 //best 0.45 500// 역기전력이후 not bad 0.6 1000
+	MotorL.gainI = 1300.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP = 0.6f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500
+	MotorR.gainP = 0.7f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500// 역기전력이후 not bad 0.6 1200
 	MotorR.gainI = 1200.0f; //400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
@@ -673,8 +673,8 @@ void Motor_Test_76EHWAN() {
 	HAL_TIM_PWM_Start_IT(MOTOR_TIM, MOTORR_CHANNEL);
 	HAL_TIM_PWM_Start_IT(MOTOR_TIM, MOTORL_CHANNEL);
 
-	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORR_CHANNEL, 3000);
-	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORL_CHANNEL, 3000);
+	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORR_CHANNEL, 300);
+	__HAL_TIM_SET_COMPARE(MOTOR_TIM, MOTORL_CHANNEL, 300);
 
 	while (1) {
 		Custom_LCD_Printf(0, 0, "%5d", MOTORR_ENCODER_TIMER.Instance->CNT);

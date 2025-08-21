@@ -73,9 +73,11 @@ float_t pitInCentimeter = 5.0f;
 
 //output
 uint16_t markSaveFirst[400];
+
 uint32_t markLengthFirst[400];
 uint16_t markSaveSecond[400];
 uint32_t markLengthSecond[400];
+
 uint32_t markIndex = 0;
 
 uint32_t markLength[400];
@@ -290,7 +292,8 @@ __STATIC_INLINE uint8_t Pre_State(uint8_t mark) {
 	return secondState;
 
 }
-
+uint16_t markIdxIncludedCross;
+uint16_t markIdxIncludedCrossArray[400] = {0}; //n번째 cross가 markIdxIncludeCross 위치 저장
 void Drive_First() {
 //output
 
@@ -303,6 +306,7 @@ void Drive_First() {
 	markIndex = 0;
 	uint8_t mark;
 	currentVelocity = 0;
+	markIdxIncludedCross = 0;
 
 //input
 	uint8_t sw = CUSTOM_JS_NONE;
@@ -367,6 +371,7 @@ void Drive_First() {
 			MotorR.currentTick = 0;
 			markIndex++;
 			endmarkCNT++;
+			markIdxIncludedCross++;
 		} else if (mark == MARK_CROSS) {
 
 			tempMarkRead[markIndex] = mark;
@@ -375,7 +380,10 @@ void Drive_First() {
 //			MotorL.currentTick = 0;
 //			MotorR.currentTick = 0;
 //			markIndex++;
+
 			crossCNT++;
+			markIdxIncludedCross++;
+			markIdxIncludedCrossArray[crossCNT] = markIdxIncludedCross;
 		} else if (mark == MARK_RIGHT) {
 			tempMarkRead[markIndex] = mark;
 			tempMarkLength[markIndex] =
@@ -384,6 +392,7 @@ void Drive_First() {
 			MotorR.currentTick = 0;
 			markIndex++;
 			markRightCNT++;
+			markIdxIncludedCross++;
 		} else if (mark == MARK_LEFT) {
 			tempMarkRead[markIndex] = mark;
 			tempMarkLength[markIndex] =
@@ -392,6 +401,7 @@ void Drive_First() {
 			MotorR.currentTick = 0;
 			markIndex++;
 			markLeftCNT++;
+			markIdxIncludedCross++;
 		}
 		if (!sensorState) {
 			break;
@@ -591,7 +601,7 @@ void First_Drive_Mark_Debug() {
 }
 
 bool windowDeadZone = 0;
-
+//bool markFix = 0;
 __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 		uint32_t index) {
 	static uint8_t secondState = STATE_IDLE;
@@ -611,6 +621,7 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 						- targetVelocitySetting * targetVelocitySetting)
 				/ (2 * decel);
 		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, 1);
+
 		if (markLengthFirst[index] < saveTick(saveCentiMeter)) {
 			secondState = STATE_DECCEL;
 			break;
@@ -631,7 +642,11 @@ __STATIC_INLINE void Second_State_Machine(uint8_t currentState, uint8_t mark,
 	}
 }
 
+uint16_t markSaveIncludedCross[400];
+
 void Drive_Second() {
+	uint16_t secMarkIdxIncludedCross = 0;
+
 	Custom_LCD_Clear();
 	//output
 	uint8_t sw = 0;
@@ -732,20 +747,29 @@ void Drive_Second() {
 			MotorR.currentTick = 0;
 			secMarkIndex++;
 			secEndmarkCNT++;
+			secMarkIdxIncludedCross++;
 		} else if (mark == MARK_CROSS) {
 			secCrossCNT++;
+			secMarkIdxIncludedCross++;
 		} else if (mark == MARK_RIGHT) {
 			secTempMarkRead[secMarkIndex] = mark;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			secMarkIndex++;
 			secMarkRightCNT++;
+			secMarkIdxIncludedCross++;
 		} else if (mark == MARK_LEFT) {
 			secTempMarkRead[secMarkIndex] = mark;
 			MotorL.currentTick = 0;
 			MotorR.currentTick = 0;
 			secMarkIndex++;
 			secMarkLeftCNT++;
+			secMarkIdxIncludedCross++;
+		}
+		if ((mark == MARK_CROSS) & (!secDrive)) {
+			secMarkIndex = markIdxIncludedCrossArray[secCrossCNT] - secCrossCNT;
+			secDrive = 1;
+//			markFix = 1;
 		}
 		if (!sensorState) {
 			break;
@@ -798,8 +822,10 @@ void Drive_Second() {
 
 }
 
-menu_t secondDMenu[] = { { "tv 3 secD ", targeV3 },{ "tv 3.1 secD ", targeV31 },{ "tv 3.2 secD ", targeV32 },{ "tv 3.3 secD ", targeV33 }, { "6.curve  ",
-		Change_curve_rate }, {"ccr1", Motor_Test_76EHWAN},{"back",Back_To_Menu} };
+menu_t secondDMenu[] = { { "tv 3 secD ", targeV3 },
+		{ "tv 3.1 secD ", targeV31 }, { "tv 3.2 secD ", targeV32 }, {
+				"tv 3.3 secD ", targeV33 }, { "6.curve  ", Change_curve_rate },
+		{ "ccr1", Motor_Test_76EHWAN }, { "back", Back_To_Menu } };
 
 void targeV3() {
 	uint8_t sw = 0;
@@ -809,20 +835,18 @@ void targeV3() {
 		Custom_LCD_Printf(0, 1, "tv3 right");
 		Custom_LCD_Printf(0, 2, "secd down");
 		Custom_LCD_Printf(0, 3, "back L");
-		Custom_LCD_Printf(0,4, "pitin D up");
+		Custom_LCD_Printf(0, 4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.0;
-//			curveRate = 0.00006f;
-//			curveDecel = 14000;
+			curveRate = 0.000065f;
+			curveDecel = 16500;
 //			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
 
-		}
-		else if(sw == CUSTOM_JS_D_TO_U){
-				Drive_First_Pit_In_Correct();
-				}
-		else if (sw == CUSTOM_JS_R_TO_L) {
+		} else if (sw == CUSTOM_JS_D_TO_U) {
+			Drive_First_Pit_In_Correct();
+		} else if (sw == CUSTOM_JS_R_TO_L) {
 			break;
 		}
 	}
@@ -837,7 +861,7 @@ void targeV31() {
 		Custom_LCD_Printf(0, 1, "tv3.1 right");
 		Custom_LCD_Printf(0, 2, "secd down");
 		Custom_LCD_Printf(0, 3, "back L");
-		Custom_LCD_Printf(0,4, "pitin D up");
+		Custom_LCD_Printf(0, 4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.1;
 //			curveRate = 0.000065f;
@@ -845,11 +869,9 @@ void targeV31() {
 //			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
-		}
-		else if(sw == CUSTOM_JS_D_TO_U){
-		Drive_First_Pit_In_Correct();
-		}
-		else if (sw == CUSTOM_JS_R_TO_L) {
+		} else if (sw == CUSTOM_JS_D_TO_U) {
+			Drive_First_Pit_In_Correct();
+		} else if (sw == CUSTOM_JS_R_TO_L) {
 			break;
 		}
 	}
@@ -863,7 +885,7 @@ void targeV32() {
 		Custom_LCD_Printf(0, 1, "tv3.2 right");
 		Custom_LCD_Printf(0, 2, "secd down");
 		Custom_LCD_Printf(0, 3, "back L");
-		Custom_LCD_Printf(0,4, "pitin D up");
+		Custom_LCD_Printf(0, 4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.2;
 //			curveRate = 0.000065f;
@@ -871,10 +893,9 @@ void targeV32() {
 //			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
-		} else if(sw == CUSTOM_JS_D_TO_U){
+		} else if (sw == CUSTOM_JS_D_TO_U) {
 			Drive_First_Pit_In_Correct();
-			}
-		else if (sw == CUSTOM_JS_R_TO_L) {
+		} else if (sw == CUSTOM_JS_R_TO_L) {
 			break;
 		}
 	}
@@ -888,7 +909,7 @@ void targeV33() {
 		Custom_LCD_Printf(0, 1, "tv3.3 right");
 		Custom_LCD_Printf(0, 2, "secd down");
 		Custom_LCD_Printf(0, 3, "back L");
-		Custom_LCD_Printf(0,4, "pitin D up");
+		Custom_LCD_Printf(0, 4, "pitin D up");
 		if (sw == CUSTOM_JS_L_TO_R) {
 			targetVelocitySetting = 3.3;
 //			curveRate = 0.000055f;
@@ -896,10 +917,9 @@ void targeV33() {
 //			pitInCentimeter = 8.5;
 		} else if (sw == CUSTOM_JS_U_TO_D) {
 			Drive_Second();
-		} else if(sw == CUSTOM_JS_D_TO_U){
+		} else if (sw == CUSTOM_JS_D_TO_U) {
 			Drive_First_Pit_In_Correct();
-			}
-		else if (sw == CUSTOM_JS_R_TO_L) {
+		} else if (sw == CUSTOM_JS_R_TO_L) {
 			break;
 		}
 	}

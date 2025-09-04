@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 #include "main.h"
+#include "LSM6DS3TR.h"
+
 
 void Init();
 void Custom_LCD_Clear();

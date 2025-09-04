@@ -52,7 +52,7 @@ void Motor_Right_Gain_I();
 void  Motor_Speed_Test();
 void Motor_Speed_Change();
 void Left_PI_Both_Change();
-
+void Motor_Speed_change_rapidly();
 void Motor_Left_Gain_Both();
 void Motor_Right_Gain_Both();
 #endif /* MAIN_INC_MOTOR_H_ */

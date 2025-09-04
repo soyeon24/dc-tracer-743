@@ -56,11 +56,11 @@ int motorTickR = 0;
 //1,8 모터 low power timer 1,2 encoder
 
 void Motor_Start() {
-	MotorL.gainP = 0.7f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46 //best 0.45 500// 역기전력이후 not bad 0.6 1000
-	MotorL.gainI = 1300.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
+	MotorL.gainP = 0.5f; //0.22; //0.13f;//0.175f;//0.48f;//1.2f;//0.48f;//0.005f;//1.23f; //1.46 //best 0.45 500// 역기전력이후 not bad 0.6 1000
+	MotorL.gainI = 900.f; //390.0f;//420.0f;//102.4f;//300.0f;//0.1f; //300.0f;
 
-	MotorR.gainP = 0.7f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500// 역기전력이후 not bad 0.6 1200
-	MotorR.gainI = 1200.0f; //400.0f;//0.0f;//
+	MotorR.gainP = 0.5f; //0.23;//0.9f;//0.8f;// 0.8f; //0.97 //best 0.4 500// 역기전력이후 not bad 0.6 1200
+	MotorR.gainI = 800.0f; //400.0f;//0.0f;//
 
 	MotorL.CurrEncVal = 0; //현재 엔코더
 	MotorL.PastEncVal = 0; //이전 엔코더

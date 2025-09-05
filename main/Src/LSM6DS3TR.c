@@ -7,18 +7,9 @@
 
 #include "LSM6DS3TR.h"
 
-#define MSB_BIT1 0x80
-#define LSM6DS3_CTRL3_C      0x12
-#define CTRL3_BOOT_Pos       7
-#define CTRL3_BDU_Pos        6
-#define CTRL3_H_LACTIVE_Pos  5
-#define CTRL3_PP_OD_Pos      4
-#define CTRL3_SIM_Pos        3
-#define CTRL3_IF_INC_Pos     2
-#define CTRL3_BLE_Pos        1
-#define CTRL3_SW_RESET_Pos   0
 
-#define BIT(n) (1U<<(n))
+
+
 
 // ---------------------- 기본 Read/Write ----------------------
 
@@ -105,5 +96,4 @@ void LSM6DS3TR_C_CheckCTRL3C(void) {
 			Custom_LCD_Printf(0, 3, "0x%02X", v);
 		}
 	}
-
 }

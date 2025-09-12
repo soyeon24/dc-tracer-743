@@ -11,6 +11,7 @@
 #include "motor.h"
 #include "drive.h"
 #include "setting.h"
+#include "LSM6DS3TR.h"
 
 #include "../../MDK-ARM/Inc/custom_switch.h"
 #include "../../MDK-ARM/Inc/lptim.h"
@@ -40,7 +41,7 @@ void Setting() {
 //,
 
 menu_t menu[] = { { "1. cali  ", Sensor_Calibration }, { "2. first  ", Drive_First },
-		{ "3. safety D", Drive_First_Pit_In_Correct }, { "4. secD Menu   ",
+		{ "zyro", LSM6DS3TR_C_Init }, { "4. secD Menu   ",
 				Drive_Second_fast_menu }, { "5. pit in", Change_Pit_In }, { "6.curve  ",
 				Change_curve_rate }, { "final slow", safety_targetV1 }, {
 				"setting", Setting_Menu } };

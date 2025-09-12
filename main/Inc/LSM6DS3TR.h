@@ -24,8 +24,32 @@
 
 #define LSM6DS3TR_C_WHO_AM_I_REG    0x0F
 
+
 #define MSB_BIT1 0x80
-#define LSM6DS3_CTRL3_C      0x12
+
+//주소
+#define LSM6DS3_CTRL1_XL   0x10
+#define LSM6DS3_CTRL2_G    0x11
+#define LSM6DS3_CTRL3_C    0x12
+#define LSM6DS3_CTRL4_C    0x13
+#define LSM6DS3_CTRL5_C    0x14
+#define LSM6DS3_CTRL6_C    0x15
+#define LSM6DS3_CTRL7_G    0x16
+#define LSM6DS3_CTRL8_XL    0x17
+#define LSM6DS3_CTRL9_XL    0x18
+#define LSM6DS3_CTRL10_C    0x19
+
+#define LSM6DS3_OUTX_L_G   0x22
+#define LSM6DS3_OUTX_L_XL  0x28
+
+#define LSM6DS3_STATUS_REG 0x1E
+
+#define LSM6DS3_OUTX_L_G   0x22  // G: X_L, X_H, Y_L, Y_H, Z_L, Z_H 자이로
+#define LSM6DS3_OUTX_L_XL  0x28  // XL: X_L, X_H, Y_L, Y_H, Z_L, Z_H 가속도
+
+
+
+
 #define CTRL3_BOOT_Pos       7
 #define CTRL3_BDU_Pos        6
 #define CTRL3_H_LACTIVE_Pos  5
@@ -115,12 +139,13 @@
 
 #define CTRL2_G (ODR_G|FS_G|FS_125)
 
+
 //CTRL3 0x44
 //BOOT
 #define BOOT_NORMAL_MODE 0x00
 #define BOOT_REBOOT_MEM 0x01
 
-#define BOOT_BASE BOOT BOOT_NORMAL_MODE
+#define BOOT_BASE BOOT_NORMAL_MODE
 #define BOOT (BOOT_BASE<<7)
 
 //BDU
@@ -147,7 +172,7 @@
 #define SIM_4WIRE 0x00
 #define SIM_3WIRE 0x01
 #define SIM_BASE SIM_4WIRE
-#define SIM (SIM_4WIRE<<3)
+#define SIM (SIM_BASE<<3)
 
 //IF_INC
 #define IF_INC_EN 0x01
@@ -168,7 +193,7 @@
 #define SW_RESET_RESET_DEVICE 0x01
 
 #define SW_RESET_BASE SW_RESET_NORMAL_MODE
-#define SW_RESET SW_RESET_BASE
+#define SW_RESET ((SW_RESET_BASE)<<0)
 
 //CTRL3_C
 #define CTRL3_C (BOOT|BDU|H_LACTIVE|PP_OD|SIM|IF_INC|BLE|SW_RESET)
@@ -265,7 +290,7 @@
 //TRIG_EN
 #define TRIG_EN_EN 0x01
 #define TRIG_EN_DIS 0x00
-#define TRIG_EN_BASE TRIG_EN_DISDIS
+#define TRIG_EN_BASE TRIG_EN_DIS
 #define TRIG_EN (TRIG_EN_BASE<<7)
 
 //LVL
@@ -454,5 +479,15 @@ void LSM6DS3TR_C_Init();
 void LSM6DS3TR_C_Routine();
 void LSM6DS3TR_C_ConfigCTRL3C();
 void LSM6DS3TR_C_CheckCTRL3C();
+
+void LSM6DS3TR_C_ConfigCTRL();
+void LSM6DS3TR_C_CheckCTRL();
+
+uint8_t LSM6DS3TR_data_ready();
+
+HAL_StatusTypeDef LSM6_ReadGyroRaw(int16_t g[3]);
+HAL_StatusTypeDef LSM6_ReadAccelRaw(int16_t a[3]);
+HAL_StatusTypeDef LSM6_ReadGA12(int16_t g[3], int16_t a[3]); // G(6)+XL(6)
+
 
 #endif /* INC_LSM6DS3TR_H_ */

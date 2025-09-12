@@ -217,7 +217,7 @@ int main(void)
 //	RTC_TimeTypeDef stimestructureget;
 //	HAL_LPTIM_Encoder_Start(&hlptim1, 65535);			//?��코더 ?��?��
 
-  	LSM6DS3TR_C_Init();
+  	//SM6DS3TR_C_Init();
 
 	while (1) {
     /* USER CODE END WHILE */

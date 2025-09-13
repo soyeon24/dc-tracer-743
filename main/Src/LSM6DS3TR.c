@@ -166,7 +166,7 @@ void LSM6DS3TR_C_CheckCTRL() {
 	HAL_Delay(200);
 	if (read_ctrl8 == CTRL8_XL) {
 		Custom_LCD_Printf(0, 4, "CTRL8 OK");
-		Custom_LCD_Printf(0, 5, "0x%02X", read_ctrl7);
+		Custom_LCD_Printf(0, 5, "0x%02X", read_ctrl8);
 	} else {
 		Custom_LCD_Printf(0, 4, "CTRL8_XL ERR");
 		Custom_LCD_Printf(0, 5, "0x%02X", read_ctrl5);
@@ -196,7 +196,7 @@ uint8_t LSM6DS3TR_data_ready() {
 }
 
 /* 데이터 읽기 */
-HAL_StatusTypeDef LSM6_ReadGyroRaw(uint16_t g[3]) {
+HAL_StatusTypeDef LSM6_ReadGyroRaw(int16_t g[3]) {
 	uint8_t b[6];
 
 	// 반환값 받지 말고 그냥 호출
@@ -208,7 +208,7 @@ HAL_StatusTypeDef LSM6_ReadGyroRaw(uint16_t g[3]) {
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6_ReadAccelRaw(uint16_t a[3]) {
+HAL_StatusTypeDef LSM6_ReadAccelRaw(int16_t a[3]) {
 	uint8_t b[6];
 
 	LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_XL, b, 6);
@@ -219,7 +219,7 @@ HAL_StatusTypeDef LSM6_ReadAccelRaw(uint16_t a[3]) {
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6_ReadGA12(uint16_t g[3], uint16_t a[3]) {
+HAL_StatusTypeDef LSM6_ReadGA12(int16_t g[3], int16_t a[3]) {
 	uint8_t b[12];
 	LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_G, b, sizeof(b)); // 0x22~0x2D
 
@@ -239,13 +239,15 @@ int16_t LSM6_Merge16(uint8_t lo, uint8_t hi) {
 	return (int16_t) (((uint16_t) hi << 8) | (uint16_t) lo); // BLE=0 가정
 }
 
-static float yaw_deg = 0.0f;
 
 
+//// 벽 정렬 이벤트 후 호출(좌우 벽 IR로 평행 검출 시)
+//void IMU_HeadingResetTo(float ref_deg){
+//    yaw_deg = ref_deg;   // 예: 0, 90, 180, 270
+//}
 
-
-uint16_t GyroRaw[3] = { 0 };
-uint16_t ACCRaw[3] = { 0 };
+int16_t GyroRaw[3] = { 0 };
+int16_t ACCRaw[3] = { 0 };
 void LSM6DS3TR_C_Init(void) {
 	Custom_LCD_Printf(0, 0, "wait");
 	HAL_Delay(1000);
@@ -275,12 +277,16 @@ void LSM6DS3TR_C_Init(void) {
 		LSM6_ReadGyroRaw(GyroRaw);
 		LSM6_ReadAccelRaw(ACCRaw);
 //		Custom_LCD_Printf(0, 0, "x  y  z");
-		Custom_LCD_Printf(0, 0, "%8x", GyroRaw[0]);
-		Custom_LCD_Printf(0, 1, "%8x", GyroRaw[1]);
-		Custom_LCD_Printf(0, 2, "%8x", GyroRaw[2]);
-		Custom_LCD_Printf(0, 3, "%8x", ACCRaw[0]);
-		Custom_LCD_Printf(0, 4, "%8x", ACCRaw[1]);
-		Custom_LCD_Printf(0, 5, "%8x", ACCRaw[2]);
+		Custom_LCD_Printf(0, 0, "%8d", GyroRaw[0]);
+		Custom_LCD_Printf(0, 1, "%8d", GyroRaw[1]);
+		Custom_LCD_Printf(0, 2, "%8d", GyroRaw[2]);
+		Custom_LCD_Printf(0, 3, "%8d", ACCRaw[0]);
+		Custom_LCD_Printf(0, 4, "%8d", ACCRaw[1]);
+		Custom_LCD_Printf(0, 5, "%8d", ACCRaw[2]);
+		HAL_Delay(500);
 	}
 
 }
+
+
+

@@ -477,6 +477,21 @@
 //CTRL10_C
 #define CTRL10_C (WRIST_TILT_EN|TIMER_EN|PEDO_EN|TILT_EN|FUNC_EN|PEDO_RST_STEP|SIGN_MOTION_EN)
 
+//각도변환
+#define DEG2RAD 0.017453292519943295f   // π/180
+#define RAD2DEG 57.29577951308232f      // 180/π
+
+// ★CTRL2_G의 FS와 반드시 일치시키세요 (예: ±2000 dps→70.0f, ±500 dps→17.5f 등)
+#define GYRO_SENS_mdps_PER_LSB 70.0f
+
+#define CF_ALPHA      0.96f     // 상보필터 (자이로 96%, 가속도 4%)
+#define GZ_LPF_ALPHA  0.20f     // 자이로 Z축 간단 LPF
+
+
+
+extern int16_t GyroRaw[3];
+extern int16_t ACCRaw[3];
+
 void LSM6DS3TR_C_Init();
 void LSM6DS3TR_C_Routine();
 void LSM6DS3TR_C_ConfigCTRL3C();

@@ -50,33 +50,6 @@ void LSM6DS3TR_C_WriteU8(uint8_t reg_addr, uint8_t value) {
 
 // ---------------------- 초기화 ----------------------
 
-void LSM6DS3TR_C_Init(void) {
-	int16_t GyroRaw[3]={0};
-	int16_t ACCRaw[3]={0};
-
-	// 1. WHO_AM_I 확인
-	uint8_t who_am_i = LSM6DS3TR_C_ReadU8(LSM6DS3TR_C_WHO_AM_I_REG);
-	Custom_LCD_Printf(0, 0, "WHO_AM_I:");
-	Custom_LCD_Printf(0, 1, "0x%02X", who_am_i);
-	HAL_Delay(1000);
-	// 2. CTRL 설정
-//	LSM6DS3TR_C_ConfigCTRL3C();
-
-	LSM6DS3TR_C_ConfigCTRL();
-//
-//	// 3. CTRL3_C 확인
-//	LSM6DS3TR_C_CheckCTRL3C();
-	LSM6DS3TR_C_CheckCTRL();
-
-//data준비 확인
-	if (LSM6DS3TR_data_ready()) {
-		//데이터읽기
-		LSM6_ReadGyroRaw(GyroRaw[3]);
-		LSM6_ReadAccelRaw(ACCRaw[3]);
-	}
-
-}
-
 void LSM6DS3TR_C_ConfigCTRL3C(void) {
 	uint8_t v = LSM6DS3TR_C_ReadU8(LSM6DS3_CTRL3_C);
 
@@ -88,7 +61,7 @@ void LSM6DS3TR_C_ConfigCTRL3C(void) {
 	v &= ~BIT(CTRL3_H_LACTIVE_Pos);  // H_LACTIVE=0 (active high)
 	v &= ~BIT(CTRL3_BLE_Pos);        // BLE=0
 
-	LSM6DS3TR_C_WriteU8(LSM6DS3_CTRL3_C, CTRL3_C);
+	LSM6DS3TR_C_WriteU8(LSM6DS3_CTRL3_C, v);
 }
 
 void LSM6DS3TR_C_ConfigCTRL(void) {
@@ -163,15 +136,15 @@ void LSM6DS3TR_C_CheckCTRL() {
 		Custom_LCD_Printf(0, 2, "CTRL4 OK");
 		Custom_LCD_Printf(0, 3, "0x%02X", read_ctrl4);
 	} else {
-		Custom_LCD_Printf(0, 2, "CTRL3_C ERR");
+		Custom_LCD_Printf(0, 2, "CTRL4_C ERR");
 		Custom_LCD_Printf(0, 3, "0x%02X", read_ctrl4);
 	}
 	HAL_Delay(200);
 	if (read_ctrl5 == CTRL5_C) {
-		Custom_LCD_Printf(0, 4, "CTRL1 OK");
+		Custom_LCD_Printf(0, 4, "CTRL5 OK");
 		Custom_LCD_Printf(0, 5, "0x%02X", read_ctrl5);
 	} else {
-		Custom_LCD_Printf(0, 4, "CTRL1_XL ERR");
+		Custom_LCD_Printf(0, 4, "CTRL5_XL ERR");
 		Custom_LCD_Printf(0, 5, "0x%02X", read_ctrl5);
 	}
 	HAL_Delay(200);
@@ -223,39 +196,91 @@ uint8_t LSM6DS3TR_data_ready() {
 }
 
 /* 데이터 읽기 */
-HAL_StatusTypeDef LSM6_ReadGyroRaw(int16_t g[3]) {
+HAL_StatusTypeDef LSM6_ReadGyroRaw(uint16_t g[3]) {
 	uint8_t b[6];
-	HAL_StatusTypeDef st = LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_G, b, 6);
-	if (st != HAL_OK)
-		return st;
+
+	// 반환값 받지 말고 그냥 호출
+	LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_G, b, 6);
+
 	g[0] = LSM6_Merge16(b[0], b[1]);
 	g[1] = LSM6_Merge16(b[2], b[3]);
 	g[2] = LSM6_Merge16(b[4], b[5]);
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6_ReadAccelRaw(int16_t a[3]) {
+HAL_StatusTypeDef LSM6_ReadAccelRaw(uint16_t a[3]) {
 	uint8_t b[6];
-	HAL_StatusTypeDef st = LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_XL, b, 6);
-	if (st != HAL_OK)
-		return st;
+
+	LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_XL, b, 6);
+
 	a[0] = LSM6_Merge16(b[0], b[1]);
 	a[1] = LSM6_Merge16(b[2], b[3]);
 	a[2] = LSM6_Merge16(b[4], b[5]);
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6_ReadGA12(int16_t g[3], int16_t a[3]) {
+HAL_StatusTypeDef LSM6_ReadGA12(uint16_t g[3], uint16_t a[3]) {
 	uint8_t b[12];
-	HAL_StatusTypeDef st = LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_G, b,
-			sizeof(b)); // 0x22~0x2D
-	if (st != HAL_OK)
-		return st;
+	LSM6DS3TR_C_ReadReg(LSM6DS3_OUTX_L_G, b, sizeof(b)); // 0x22~0x2D
+
+	// G
 	g[0] = LSM6_Merge16(b[0], b[1]);
 	g[1] = LSM6_Merge16(b[2], b[3]);
 	g[2] = LSM6_Merge16(b[4], b[5]);
+	// XL
 	a[0] = LSM6_Merge16(b[6], b[7]);
 	a[1] = LSM6_Merge16(b[8], b[9]);
 	a[2] = LSM6_Merge16(b[10], b[11]);
 	return HAL_OK;
+}
+
+// LSM6DS3TR.c
+int16_t LSM6_Merge16(uint8_t lo, uint8_t hi) {
+	return (int16_t) (((uint16_t) hi << 8) | (uint16_t) lo); // BLE=0 가정
+}
+
+static float yaw_deg = 0.0f;
+
+
+
+
+uint16_t GyroRaw[3] = { 0 };
+uint16_t ACCRaw[3] = { 0 };
+void LSM6DS3TR_C_Init(void) {
+	Custom_LCD_Printf(0, 0, "wait");
+	HAL_Delay(1000);
+	// 1. WHO_AM_I 확인
+	uint8_t who_am_i = LSM6DS3TR_C_ReadU8(LSM6DS3TR_C_WHO_AM_I_REG);
+	Custom_LCD_Printf(0, 0, "WHO_AM_I:");
+	Custom_LCD_Printf(0, 1, "0x%02X", who_am_i);
+	HAL_Delay(1000);
+	// 2. CTRL 설정
+//	LSM6DS3TR_C_ConfigCTRL3C();
+
+	LSM6DS3TR_C_ConfigCTRL();
+//
+//	// 3. CTRL3_C 확인
+//	LSM6DS3TR_C_CheckCTRL3C();
+	LSM6DS3TR_C_CheckCTRL();
+
+//data준비 확인
+	if (LSM6DS3TR_data_ready()) {
+		//데이터읽기
+		LSM6_ReadGyroRaw(GyroRaw);
+		LSM6_ReadAccelRaw(ACCRaw);
+	}
+	Custom_LCD_Clear();
+	while (1) {
+		//Custom_LCD_Clear();
+		LSM6_ReadGyroRaw(GyroRaw);
+		LSM6_ReadAccelRaw(ACCRaw);
+//		Custom_LCD_Printf(0, 0, "x  y  z");
+		Custom_LCD_Printf(0, 0, "%8x", GyroRaw[0]);
+		Custom_LCD_Printf(0, 1, "%8x", GyroRaw[1]);
+		Custom_LCD_Printf(0, 2, "%8x", GyroRaw[2]);
+		Custom_LCD_Printf(0, 3, "%8x", ACCRaw[0]);
+		Custom_LCD_Printf(0, 4, "%8x", ACCRaw[1]);
+		Custom_LCD_Printf(0, 5, "%8x", ACCRaw[2]);
+	}
+
 }

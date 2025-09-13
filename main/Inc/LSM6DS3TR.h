@@ -21,6 +21,8 @@
 #include "math.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include "stm32h7xx_hal.h"
+
 
 #define LSM6DS3TR_C_WHO_AM_I_REG    0x0F
 
@@ -484,10 +486,10 @@ void LSM6DS3TR_C_ConfigCTRL();
 void LSM6DS3TR_C_CheckCTRL();
 
 uint8_t LSM6DS3TR_data_ready();
-
-HAL_StatusTypeDef LSM6_ReadGyroRaw(int16_t g[3]);
-HAL_StatusTypeDef LSM6_ReadAccelRaw(int16_t a[3]);
-HAL_StatusTypeDef LSM6_ReadGA12(int16_t g[3], int16_t a[3]); // G(6)+XL(6)
+int16_t LSM6_Merge16(uint8_t lo, uint8_t hi);
+//HAL_StatusTypeDef LSM6_ReadGyroRaw(int16_t g[3]);
+//HAL_StatusTypeDef LSM6_ReadAccelRaw(int16_t a[3]);
+//HAL_StatusTypeDef LSM6_ReadGA12(int16_t g[3], int16_t a[3]); // G(6)+XL(6)
 
 
 #endif /* INC_LSM6DS3TR_H_ */

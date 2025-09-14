@@ -128,7 +128,7 @@
 #define FS_G_1000DPS 0x02
 #define FS_G_2000DPS 0x03
 
-#define FS_G_BASE FS_G_500DPS
+#define FS_G_BASE FS_G_500DPS //1카운트는0.0175degree/sec
 #define FS_G (FS_G_BASE<<2)
 
 //FS_125
@@ -476,21 +476,28 @@
 
 //CTRL10_C
 #define CTRL10_C (WRIST_TILT_EN|TIMER_EN|PEDO_EN|TILT_EN|FUNC_EN|PEDO_RST_STEP|SIGN_MOTION_EN)
+/* ___________________________________________________________________________*/
 
-//각도변환
-#define DEG2RAD 0.017453292519943295f   // π/180
-#define RAD2DEG 57.29577951308232f      // 180/π
 
-// ★CTRL2_G의 FS와 반드시 일치시키세요 (예: ±2000 dps→70.0f, ±500 dps→17.5f 등)
-#define GYRO_SENS_mdps_PER_LSB 70.0f
+#define DEG2RAD (M_PI/180.f)
+#define RAD2DEG (180.f/M_PI)
 
-#define CF_ALPHA      0.96f     // 상보필터 (자이로 96%, 가속도 4%)
-#define GZ_LPF_ALPHA  0.20f     // 자이로 Z축 간단 LPF
+// ★자이로 FS=±500 dps일 때 감도(데이터시트)
+#define GYRO_SENS_mdps_PER_LSB 17.5f   // mdps/LSB
+// 편의용: dps/LSB(=0.0175)
+#define GYRO_SENS_dps_PER_LSB  (GYRO_SENS_mdps_PER_LSB * 0.001f)
 
+
+/* ___________________________________________________________________________*/
 
 
 extern int16_t GyroRaw[3];
 extern int16_t ACCRaw[3];
+extern volatile float yaw_rad;
+extern volatile float roll_rad;
+extern volatile float pitch_rad;
+
+
 
 void LSM6DS3TR_C_Init();
 void LSM6DS3TR_C_Routine();
@@ -505,6 +512,10 @@ int16_t LSM6_Merge16(uint8_t lo, uint8_t hi);
 //HAL_StatusTypeDef LSM6_ReadGyroRaw(int16_t g[3]);
 //HAL_StatusTypeDef LSM6_ReadAccelRaw(int16_t a[3]);
 //HAL_StatusTypeDef LSM6_ReadGA12(int16_t g[3], int16_t a[3]); // G(6)+XL(6)
+void IMU_GetGyroDps_Corrected(float *g_dps);
+void IMU_GetGyroRadPS_Corrected(float g_radps[3]);
+void IMU_CalcGyroBias_All_rad(uint16_t samples, uint16_t delay_ms_each);
+//float gyro_raw_to_dps();
 
 
 #endif /* INC_LSM6DS3TR_H_ */

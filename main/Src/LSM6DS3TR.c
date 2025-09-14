@@ -239,8 +239,6 @@ int16_t LSM6_Merge16(uint8_t lo, uint8_t hi) {
 	return (int16_t) (((uint16_t) hi << 8) | (uint16_t) lo); // BLE=0 가정
 }
 
-
-
 //// 벽 정렬 이벤트 후 호출(좌우 벽 IR로 평행 검출 시)
 //void IMU_HeadingResetTo(float ref_deg){
 //    yaw_deg = ref_deg;   // 예: 0, 90, 180, 270
@@ -265,6 +263,8 @@ void LSM6DS3TR_C_Init(void) {
 //	LSM6DS3TR_C_CheckCTRL3C();
 	LSM6DS3TR_C_CheckCTRL();
 
+	IMU_CalcGyroBias_All_rad(300, 2);
+
 //data준비 확인
 	if (LSM6DS3TR_data_ready()) {
 		//데이터읽기
@@ -272,21 +272,86 @@ void LSM6DS3TR_C_Init(void) {
 		LSM6_ReadAccelRaw(ACCRaw);
 	}
 	Custom_LCD_Clear();
+	uint32_t prevTick = HAL_GetTick();
+
+	float g_dps[3];
+
 	while (1) {
 		//Custom_LCD_Clear();
 		LSM6_ReadGyroRaw(GyroRaw);
 		LSM6_ReadAccelRaw(ACCRaw);
 //		Custom_LCD_Printf(0, 0, "x  y  z");
-		Custom_LCD_Printf(0, 0, "%8d", GyroRaw[0]);
-		Custom_LCD_Printf(0, 1, "%8d", GyroRaw[1]);
-		Custom_LCD_Printf(0, 2, "%8d", GyroRaw[2]);
-		Custom_LCD_Printf(0, 3, "%8d", ACCRaw[0]);
-		Custom_LCD_Printf(0, 4, "%8d", ACCRaw[1]);
-		Custom_LCD_Printf(0, 5, "%8d", ACCRaw[2]);
-		HAL_Delay(500);
+//		Custom_LCD_Printf(0, 0, "%8d", GyroRaw[0]);
+//		Custom_LCD_Printf(0, 1, "%8d", GyroRaw[1]);
+//		Custom_LCD_Printf(0, 2, "%8d", GyroRaw[2]);
+//		Custom_LCD_Printf(0, 3, "%8d", ACCRaw[0]);
+//		Custom_LCD_Printf(0, 4, "%8d", ACCRaw[1]);
+//		Custom_LCD_Printf(0, 5, "%8d", ACCRaw[2]);
+//		HAL_Delay(500);
+		IMU_GetGyroDps_Corrected(g_dps);
+		Custom_LCD_Printf(0, 0, "Gx(dps)");
+		Custom_LCD_Printf(0, 1, "%7.3f", g_dps[0]);
+		Custom_LCD_Printf(0, 2, "Gy(dps)");
+		Custom_LCD_Printf(0, 3, "%7.3f", g_dps[1]);
+		Custom_LCD_Printf(0, 4, "Gz(dps)");
+		Custom_LCD_Printf(0, 5, "%7.3f", g_dps[2]);
+//		        Custom_LCD_Printf(0, 3, "Yaw(deg): %7.2f", rad2deg(yaw_rad));
 	}
 
 }
 
+// 바이어스(영점) 보정값: 단위는 rad/s
+static float bias_gx_rad = 0.0f;
+static float bias_gy_rad = 0.0f;
+static float bias_gz_rad = 0.0f;
 
+// raw → dps
+float gyro_raw_to_dps(int16_t raw) {
+	return raw * GYRO_SENS_dps_PER_LSB; // 0.0175 dps/LSB
+}
+
+// raw → rad/s
+float gyro_raw_to_rads(int16_t raw) {
+	return gyro_raw_to_dps(raw) * DEG2RAD;
+}
+
+void IMU_CalcGyroBias_All_rad(uint16_t samples, uint16_t delay_ms_each) {
+	int64_t sx = 0, sy = 0, sz = 0;
+
+	// 워밍업(선택)
+	LSM6_ReadGyroRaw(GyroRaw);
+
+	for (uint16_t i = 0; i < samples; i++) {
+		LSM6_ReadGyroRaw(GyroRaw);
+		sx += GyroRaw[0];
+		sy += GyroRaw[1];
+		sz += GyroRaw[2];
+		HAL_Delay(delay_ms_each);
+	}
+
+	float mx = (float) (sx / (double) samples);
+	float my = (float) (sy / (double) samples);
+	float mz = (float) (sz / (double) samples);
+
+	// 평균 raw → rad/s 로 저장
+	bias_gx_rad = gyro_raw_to_rads((int16_t) mx);
+	bias_gy_rad = gyro_raw_to_rads((int16_t) my);
+	bias_gz_rad = gyro_raw_to_rads((int16_t) mz);
+}
+
+// 보정된 각속도(rad/s) 3축
+void IMU_GetGyroRadPS_Corrected(float g_radps[3]) {
+	g_radps[0] = gyro_raw_to_rads(GyroRaw[0]) - bias_gx_rad;
+	g_radps[1] = gyro_raw_to_rads(GyroRaw[1]) - bias_gy_rad;
+	g_radps[2] = gyro_raw_to_rads(GyroRaw[2]) - bias_gz_rad;
+}
+
+// 보정된 각속도(dps) 3축 (원하면 표시용으로 사용)
+void IMU_GetGyroDps_Corrected(float *g_dps) {
+	float g_radps[3];
+	IMU_GetGyroRadPS_Corrected(g_radps);
+	*(g_dps + 0) = g_radps[0] * RAD2DEG;
+	*(g_dps + 1) = g_radps[1] * RAD2DEG;
+	*(g_dps + 2) = g_radps[2] * RAD2DEG;
+}
 

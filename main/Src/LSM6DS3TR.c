@@ -246,6 +246,7 @@ int16_t LSM6_Merge16(uint8_t lo, uint8_t hi) {
 
 int16_t GyroRaw[3] = { 0 };
 int16_t ACCRaw[3] = { 0 };
+float yaw_deg = 0.f;
 void LSM6DS3TR_C_Init(void) {
 	Custom_LCD_Printf(0, 0, "wait");
 	HAL_Delay(1000);
@@ -263,7 +264,7 @@ void LSM6DS3TR_C_Init(void) {
 //	LSM6DS3TR_C_CheckCTRL3C();
 	LSM6DS3TR_C_CheckCTRL();
 
-	IMU_CalcGyroBias_All_rad(300, 2);
+	IMU_CalcGyroBias_All_rad(300, 10);
 
 //data준비 확인
 	if (LSM6DS3TR_data_ready()) {
@@ -277,6 +278,10 @@ void LSM6DS3TR_C_Init(void) {
 	float g_dps[3];
 
 	while (1) {
+		if(!LSM6DS3TR_data_ready()){
+			HAL_Delay(1);
+			continue;
+		}
 		//Custom_LCD_Clear();
 		LSM6_ReadGyroRaw(GyroRaw);
 		LSM6_ReadAccelRaw(ACCRaw);
@@ -289,12 +294,29 @@ void LSM6DS3TR_C_Init(void) {
 //		Custom_LCD_Printf(0, 5, "%8d", ACCRaw[2]);
 //		HAL_Delay(500);
 		IMU_GetGyroDps_Corrected(g_dps);
+
+		uint32_t nowTick  = HAL_GetTick();;
+		uint32_t dt_ms = nowTick - prevTick;
+		prevTick = nowTick;
+		float dt_sec = dt_ms * 0.001f;
+
+		if(dt_sec>0.1f){
+			dt_sec = 0.0f;
+		}
+
+	     // yaw 적분 (라디안)
+		yaw_deg += g_dps[2] * dt_sec;
+
+
+
 		Custom_LCD_Printf(0, 0, "Gx(dps)");
 		Custom_LCD_Printf(0, 1, "%7.3f", g_dps[0]);
 		Custom_LCD_Printf(0, 2, "Gy(dps)");
 		Custom_LCD_Printf(0, 3, "%7.3f", g_dps[1]);
 		Custom_LCD_Printf(0, 4, "Gz(dps)");
 		Custom_LCD_Printf(0, 5, "%7.3f", g_dps[2]);
+		Custom_LCD_Printf(0, 6, "%f",yaw_deg);
+
 //		        Custom_LCD_Printf(0, 3, "Yaw(deg): %7.2f", rad2deg(yaw_rad));
 	}
 
@@ -321,7 +343,7 @@ void IMU_CalcGyroBias_All_rad(uint16_t samples, uint16_t delay_ms_each) {
 	// 워밍업(선택)
 	LSM6_ReadGyroRaw(GyroRaw);
 
-	for (uint16_t i = 0; i < samples; i++) {
+	for (uint16_t i = 0; i < samples; i++) {//samples만큼 한뒤 평균 사용
 		LSM6_ReadGyroRaw(GyroRaw);
 		sx += GyroRaw[0];
 		sy += GyroRaw[1];

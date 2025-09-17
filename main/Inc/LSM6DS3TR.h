@@ -491,6 +491,10 @@
 
 /* ___________________________________________________________________________*/
 
+#define YAW_DIR   (-1.0f)  // 현재 코드 유지: -g_dps[2]
+#define PITCH_DIR (-1.0f)  // yaw와 동일하게 반시계 증가 → 시계 증가로 바꾸려면 +1.0f
+#define ROLL_DIR  (-1.0f)
+
 
 extern int16_t GyroRaw[3];
 extern int16_t ACCRaw[3];

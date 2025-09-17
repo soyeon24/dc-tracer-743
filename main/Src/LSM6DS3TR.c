@@ -259,7 +259,11 @@ int16_t LSM6_Merge16(uint8_t lo, uint8_t hi) {
 
 int16_t GyroRaw[3] = { 0 };
 int16_t ACCRaw[3] = { 0 };
+
 float yaw_deg = 0.f;
+float pitch_deg = 0.f;
+float roll_deg  = 0.f;
+
 void LSM6DS3TR_C_Init(void) {
 	uint8_t sw =0;
 	Custom_LCD_Printf(0, 0, "wait");
@@ -321,9 +325,12 @@ void LSM6DS3TR_C_Init(void) {
 
 
 	     // yaw 적분 (degree)
-		yaw_deg += (-g_dps[2] )* dt_sec;
+		yaw_deg += YAW_DIR*(g_dps[2] )* dt_sec;
+		pitch_deg += PITCH_DIR*(g_dps[1] )* dt_sec;
+		roll_deg += ROLL_DIR*(g_dps[0] )* dt_sec;
 		yaw_deg = wrap_deg_0_360(yaw_deg);
-
+		pitch_deg = wrap_deg_0_360(pitch_deg);
+		roll_deg  = wrap_deg_0_360(roll_deg);
 
 		Custom_LCD_Printf(0, 0, "Gx(dps)");
 		Custom_LCD_Printf(0, 1, "%7.3f", g_dps[0]);
@@ -332,9 +339,16 @@ void LSM6DS3TR_C_Init(void) {
 		Custom_LCD_Printf(0, 4, "Gz(dps)");
 		Custom_LCD_Printf(0, 5, "%7.3f", g_dps[2]);
 		Custom_LCD_Printf(0, 6, "%f",yaw_deg);
-		Custom_LCD_Printf(0, 7, "cali down");
+		Custom_LCD_Printf(0, 7, "%f",pitch_deg);
+		Custom_LCD_Printf(0, 8, "%f",roll_deg);
+
+		Custom_LCD_Printf(0, 9, "cali down")
+;
 		if((sw = Custom_Switch_Read())==CUSTOM_JS_U_TO_D){
 			yaw_deg=0;
+			roll_deg=0;
+			pitch_deg=0;
+
 			Custom_LCD_Clear();
 			Custom_LCD_Printf(0, 0,"cali");
 			IMU_CalcGyroBias_All_rad(300,10);

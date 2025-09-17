@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "stm32h7xx_hal.h"
+#include "../../MDK-ARM/Inc/custom_switch.h"
 
 
 #define LSM6DS3TR_C_WHO_AM_I_REG    0x0F
@@ -497,6 +498,21 @@ extern volatile float yaw_rad;
 extern volatile float roll_rad;
 extern volatile float pitch_rad;
 
+
+extern float gyro_sens_dps_per_lsb;
+
+/* CTRL2_G 레지스터 값에서 감도(dps/LSB) 계산
+ * 비트필드: ODR_G[7:4] | FS_G[3:2] | FS_125[1] | (0)
+ * FS_125가 1이면 ±125dps 고정(0.004375 dps/LSB)
+ */
+float LSM6_get_gyro_sens_dps_per_lsb_from_CTRL2(uint8_t ctrl2);
+
+/* 디바이스에서 CTRL2_G를 읽어 전역 감도(gyro_sens_dps_per_lsb) 갱신 */
+void LSM6_update_gyro_sens_from_device(void);
+
+/* raw → dps / rad/s 변환 유틸 */
+float gyro_raw_to_dps(int16_t raw);
+float gyro_raw_to_rads(int16_t raw);
 
 
 void LSM6DS3TR_C_Init();

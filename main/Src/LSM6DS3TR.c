@@ -34,8 +34,21 @@ __STATIC_INLINE void LSM6DS3TR_C_WriteReg(uint8_t reg_addr, uint8_t *setting,
 	free(tx_byte);
 }
 
-// ---------------------- 편의 함수 ----------------------
+// ---------------------- 360도 ----------------------
+static inline float wrap_deg_0_360(float deg)
+{
+    // fmodf로 360 기준 모듈러, 음수면 360 더해 양수화
+    deg = fmodf(deg, 360.0f);
+    if (deg < 0.0f) deg += 360.0f;
 
+    // 360.0000 근처의 부동소수 오차를 0으로 스냅(선택)
+    if (deg >= 359.999f) deg = 0.0f;
+
+    return deg; // 0.0f <= deg < 360.0f
+}
+
+
+// ---------------------- 편의 함수 ----------------------
 // 단일 바이트 읽기
 uint8_t LSM6DS3TR_C_ReadU8(uint8_t reg_addr) {
 	uint8_t v;
@@ -248,6 +261,7 @@ int16_t GyroRaw[3] = { 0 };
 int16_t ACCRaw[3] = { 0 };
 float yaw_deg = 0.f;
 void LSM6DS3TR_C_Init(void) {
+	uint8_t sw =0;
 	Custom_LCD_Printf(0, 0, "wait");
 	HAL_Delay(1000);
 	// 1. WHO_AM_I 확인
@@ -259,6 +273,8 @@ void LSM6DS3TR_C_Init(void) {
 //	LSM6DS3TR_C_ConfigCTRL3C();
 
 	LSM6DS3TR_C_ConfigCTRL();
+	LSM6_update_gyro_sens_from_device();   // ★ 감도 동기화
+	IMU_CalcGyroBias_All_rad(300, 10);     // 바이어스 측정
 //
 //	// 3. CTRL3_C 확인
 //	LSM6DS3TR_C_CheckCTRL3C();
@@ -300,13 +316,13 @@ void LSM6DS3TR_C_Init(void) {
 		prevTick = nowTick;
 		float dt_sec = dt_ms * 0.001f;
 
-		if(dt_sec>0.1f){
-			dt_sec = 0.0f;
-		}
 
-	     // yaw 적분 (라디안)
-		yaw_deg += g_dps[2] * dt_sec;
+		if (dt_sec > 0.05f) dt_sec = 0.05f;
 
+
+	     // yaw 적분 (degree)
+		yaw_deg += (-g_dps[2] )* dt_sec;
+		yaw_deg = wrap_deg_0_360(yaw_deg);
 
 
 		Custom_LCD_Printf(0, 0, "Gx(dps)");
@@ -316,6 +332,16 @@ void LSM6DS3TR_C_Init(void) {
 		Custom_LCD_Printf(0, 4, "Gz(dps)");
 		Custom_LCD_Printf(0, 5, "%7.3f", g_dps[2]);
 		Custom_LCD_Printf(0, 6, "%f",yaw_deg);
+		Custom_LCD_Printf(0, 7, "cali down");
+		if((sw = Custom_Switch_Read())==CUSTOM_JS_U_TO_D){
+			yaw_deg=0;
+			Custom_LCD_Clear();
+			Custom_LCD_Printf(0, 0,"cali");
+			IMU_CalcGyroBias_All_rad(300,10);
+			HAL_Delay(300);
+			HAL_Delay(500);
+
+		}
 
 //		        Custom_LCD_Printf(0, 3, "Yaw(deg): %7.2f", rad2deg(yaw_rad));
 	}
@@ -328,14 +354,14 @@ static float bias_gy_rad = 0.0f;
 static float bias_gz_rad = 0.0f;
 
 // raw → dps
-float gyro_raw_to_dps(int16_t raw) {
-	return raw * GYRO_SENS_dps_PER_LSB; // 0.0175 dps/LSB
-}
-
-// raw → rad/s
-float gyro_raw_to_rads(int16_t raw) {
-	return gyro_raw_to_dps(raw) * DEG2RAD;
-}
+//float gyro_raw_to_dps(int16_t raw) {
+//	return raw * GYRO_SENS_dps_PER_LSB; // 0.0175 dps/LSB
+//}
+//
+//// raw → rad/s
+//float gyro_raw_to_rads(int16_t raw) {
+//	return gyro_raw_to_dps(raw) * DEG2RAD;
+//}
 
 void IMU_CalcGyroBias_All_rad(uint16_t samples, uint16_t delay_ms_each) {
 	int64_t sx = 0, sy = 0, sz = 0;
@@ -376,4 +402,40 @@ void IMU_GetGyroDps_Corrected(float *g_dps) {
 	*(g_dps + 1) = g_radps[1] * RAD2DEG;
 	*(g_dps + 2) = g_radps[2] * RAD2DEG;
 }
+
+// 전역 감도 상수
+float gyro_sens_dps_per_lsb = 0.0175f; // 기본값(500 dps 가정)
+
+// CTRL2_G 레지스터 값에서 감도 산출 (FS_125 우선)
+float LSM6_get_gyro_sens_dps_per_lsb_from_CTRL2(uint8_t ctrl2)
+{
+    // 비트필드: ODR_G(7:4) | FS_G(3:2) | FS_125(1) | (0)
+    uint8_t fs125 = (ctrl2 >> 1) & 0x1;
+    if (fs125) {
+        // FS_125 = ±125 dps 고정
+        return 0.004375f;  // 4.375 mdps/LSB
+    }
+    uint8_t fs = (ctrl2 >> 2) & 0x3; // 00,01,10,11
+    switch (fs) {
+        case 0: return 0.00875f;  // ±245 dps -> 8.75 mdps/LSB
+        case 1: return 0.0175f;   // ±500 dps -> 17.5 mdps/LSB
+        case 2: return 0.035f;    // ±1000 dps -> 35 mdps/LSB
+        case 3: return 0.07f;     // ±2000 dps -> 70 mdps/LSB
+    }
+    return 0.0175f; // fallback
+}
+
+// 디바이스에서 읽어서 전역 감도 갱신
+void LSM6_update_gyro_sens_from_device(void)
+{
+    uint8_t ctrl2 = LSM6DS3TR_C_ReadU8(LSM6DS3_CTRL2_G);
+    gyro_sens_dps_per_lsb = LSM6_get_gyro_sens_dps_per_lsb_from_CTRL2(ctrl2);
+}
+
+// 변환 함수는 전역 감도 사용
+float gyro_raw_to_dps(int16_t raw)      { return raw * gyro_sens_dps_per_lsb; }
+float gyro_raw_to_rads(int16_t raw)     { return gyro_raw_to_dps(raw) * DEG2RAD; }
+
+
+
 
